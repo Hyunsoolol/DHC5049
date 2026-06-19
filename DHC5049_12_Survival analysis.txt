@@ -1,0 +1,593 @@
+Survival analysis
+헬스케어데이터분석개론 12강
+
+                                   지상아
+                    삼성서울병원 의학통계센터
+                        sszzgg91@naver.com
+[Review] Regression Analysis                                                     2
+
+
+
+
+  Goal
+         결과변수 (𝑌)와 설명변수 (𝑋s)간의 인과관계 (causal relationship) 추론
+         인과관계를 𝑌 = 𝑓(𝑋)로 모형화
+
+
+           𝒀 = 𝒇 𝜷𝟎 + 𝜷𝟏 𝑿𝟏 + 𝜷𝟐 𝑿𝟐 + ⋯ + 𝜷𝑲 𝑿𝑲 + 𝝐
+
+         결과변수를 설명변수들의 선형 조합 (linear combination) = 가중합 (weighted sum)의 함수로 모형화
+
+  Objectives
+      모형의 추정, 유의성 확인, 설명력 평가
+      결과변수 설명/예측에 대한 각 설명변수의 상대적 기여도 추정
+      → 위험인자 분석 (risk factor analysis)
+         : outcome에 영향을 미치는 설명변수는 무엇인가?
+      특정 설명변수 값에 대한 결과변수 값 예측
+      → 예측 모형 (prediction modeling)
+         : 설명변수들로 outcome을 예측할 수 있는가?
+[Review] Logistic regression model                                                                              3
+
+
+
+
+  일반화 선형모형 (Generalized linear model, GLM)
+                            ⋯++𝛽𝛽𝑘𝑘𝑋𝑋𝑘𝑘++𝜖𝜖 and pre-chosen link function for 𝐠 · according to type of outcome
+    gg 𝑌𝑌 ==𝛽𝛽00++𝛽𝛽11𝑋𝑋11++⋯
+     Assume non-normal error
+
+  로지스틱 회귀모형 (Logistic regression model)
+    범주형 결과변수 (ex. Control vs Case, Normal vs Disease, Class 1 vs Class 2)
+    GLM for binary outcome with binomial error
+                                        𝑝
+      Logit link function   g 𝑌 = ln             𝑤ℎ𝑒𝑟𝑒 𝑝 = 𝑃 𝒀 = 𝟏
+                                       1−𝑝
+
+      Assumption
+                                                     𝑝
+          Linear relationship between log odds ln             and X
+                                                    1−𝑝
+[Review] Odds Ratio vs Beta coefficient (𝜷)                     4
+
+
+
+
+   설명변수 별 오즈비 (OR) vs 회귀계수 (𝛽)
+
+                        ∆ 𝑋𝑘 = 1
+      𝑂𝑅𝑘 = 𝑂𝑅(𝑋𝑘 ) =            = exp(𝛽𝑘 )    ∆ 𝒑 = 𝒐𝒅𝒅𝒔
+                        ∆ 𝑋𝑘 = 0
+                                                 𝒑 = 𝑷(𝒀 = 𝟏)
+
+
+       𝛽𝑘 = ln 𝑂𝑅𝑘 = ln ∆ 𝑋𝑘 = 1     − ln ∆ 𝑋𝑘 = 0
+
+ • 𝑋𝑘 값이 한 단위 증가할 때, case일 log odds가 𝛽𝑘 만큼 증가
+ • 𝑋𝑘 값이 한 단위 증가할 때, case일 odds가 exp(𝛽𝑘 )만큼 증가
+변수/자료 유형에 따른 검정법 선정 - 관계/예측검정                                                  5
+
+
+
+
+  차이 검정
+                          Parametric     Chi-square test
+                  범주형
+                         Nonparametric Fisher’s exact test
+가설검정      관계 검정
+                          Parametric     Pearson correlation
+                  연속형
+                         Nonparametric Spearman correlation
+ 관계/예측 검정
+                            연속형          Linear regression model
+
+                            범주형          Logistic regression model
+          예측 검정   회귀분석
+                            이산형          Poisson regression model
+
+                            생존형          Cox proportional hazards regression model
+목차                                                   6
+
+
+
+
+ Cox regression model
+     Introduction to Survival analysis
+     Descriptive Statistics for Time-to-event data
+     Difference test for Survival analysis
+     Cox’s proportional hazard model
+     R 실습
+     Introduction to
+    Survival analysis
+(Time-to-Event analysis)
+
+
+                           7
+[Review] Cross-sectional data vs Longitudinal data                                                                        8
+
+
+
+
+  데이터 관측기간의 길이에 따라 구분
+
+  Cross-sectional data (횡단 자료)
+  : 특정 시점 또는 짧은 기간동안 한번 수집한 자료
+  예. 국민건강영양조사 자료
+                                     Kim, Sungchan, et al. "Discovering spatiotemporal patterns of COVID-19 pandemic in
+       특정 시점에서의 상태나 연관성 분석                          South Korea." Scientific Reports 11.1 (2021): 24470.
+
+    예. 2025년 3월 현재 고혈압 여부에 따른 비만율 분석
+
+  Longitudinal data (종단 자료)
+  : 동일한 대상을 여러 기간에 걸쳐 측정하거나 여러 시점에 걸쳐 반복측정한 자료
+  예. 건강보험공단 코호트 자료
+      시간에 따른 변화나 인과관계 분석
+      예. 2020년부터 2025년까지의 고혈압 여부에 따른 비만 위험도 분석
+      예. 한국의 COVID-19 pandemic 동안의 일별 발생건수 패턴 변화 분석
+      Repeated measures data (반복측정 자료), Time-series data (시계열 자료), Survival data (생존 자료)
+[Review] 종단자료 예시: 생존자료를 이용한 논문   9
+[Review] 종단자료 예시: 생존자료를 이용한 논문                       10
+
+
+
+
+                                 시간에 따른 생존율의 감소 속도 (위험도)
+                                 확인
+Follow-up Study (Ideal Setting)                                                          11
+
+
+
+
+                Follow-up time (추적관찰기간) for Subject #1
+Subject #1                                               Event occurred for Subject #1
+
+Subject #2
+
+Subject #3
+
+Subject #4
+
+
+Subject #5
+
+Subject #6
+
+Subject #7
+
+      Time 0
+      Study start (=Baseline)
+Follow-up Study (Realistic Setting)                                                                         12
+
+
+
+
+Subject #1
+                                                                                Censored for Subject #2
+Subject #2
+                        Follow-up time for Subject #2
+Subject #3
+                   Different beginning time                                     Censored due to study end
+Subject #4
+
+
+Subject #5                                    Censored dur to Side effect
+                                                                                Censored due to study end
+Subject #6
+
+Subject #7                                                 Censored due to
+                                                           Follow-up loss
+        Time 0                                                              Time t
+        Study start (=Baseline)                                             Study end
+Time-to-Event Data                                               13
+
+
+
+
+  시간에 따른 사망이나 재발 등의 변화를 관찰하는 분석
+    Event 발생 여부 (Event occurred or Censored)
+    Event 발생 또는 Censor까지 걸린 시간 (Follow-up time, Time-to-event)
+
+  Censored data (중도절단 자료)
+      다양한 이유로 사건이 발생하지 않아 사건발생까지 걸린 시간을 추정할 수 없는 자료
+      Possible reasons
+          Study end (termination of study)
+          Drop-out
+          Lost to follow-up
+          Withdrawn from study
+          Death from unrelated cause
+Survival/Hazard Function                                         14
+
+
+
+
+  T = time-to-event
+
+  Survival function
+      𝑆 𝑡 =𝑃 𝑇>𝑡      : 시점 𝑡에서 살아 있을 확률 (Survival Probability)
+
+  Hazard function
+             𝑑𝑆(𝑡)        𝑃 𝑡 ≤ 𝑇 < 𝑡 + 𝑑𝑡 𝑇 ≥ 𝑡)
+      ℎ 𝑡 =        = lim
+               𝑑𝑡    𝑑𝑡→0            𝑑𝑡
+     : 시점 𝑡까지 살아 있을 때, 직후에 바로 event가 발생할 조건부 확률
+Descriptive Statistics for
+ Time-to-event data
+
+
+
+                             15
+생존자료의 기술통계량                                                                                            16
+
+
+
+
+ Survival probability at specific time 𝑡: 시점 𝑡에서 살아있을 확률 (ex. 5-year survival probability)
+  𝑆 𝑡 =𝑃 𝑇>𝑡
+
+
+ Median survival time: 전체 생존 곡선의 중간점 (전체 환자의 50%가 생존했을 때의 시간)
+  𝑡   𝑤ℎ𝑒𝑟𝑒 𝑆 𝑡 = 0.5
+
+
+
+ Median follow-up time: 관찰된 전체 추적기간의 중앙값
+     Reverse Kaplan-Meier method
+                                                                      Survival probability at time 𝑡
+
+ Incidence rate: 단위 시간 당 사건 발생률 (person-year 기반)
+            𝑁𝑢𝑚𝑏𝑒𝑟 𝑜𝑓 𝑒𝑣𝑒𝑛𝑡𝑠
+   𝜆 𝑡 =
+           𝑇𝑜𝑡𝑎𝑙 𝑝𝑒𝑟𝑠𝑜𝑛 − 𝑡𝑖𝑚𝑒                                            Median survival time 𝑡
+Difference test for
+ Survival analysis
+
+
+
+                      17
+생존자료에 대한 양측 이표본 검정                                                              18
+
+
+
+
+Framingham Heart Study라는 코호트 연구에서 과거 당뇨병 진단 여부 (DIABETES)와 심뇌혈관질환 (CVD) 발생 위험
+간의 연관성을 확인하고자 한다.
+
+이때 Period 1에 해당하는 대상군 (PERIOD=1)에 한하여,
+전체 연구기간에서 당뇨병 발생여부에 따른 심뇌혈관질환 발생의 생존곡선이 다른지 여부를 통계적으로 검정하라.
+
+
+ 가설       𝐻0 : 𝑆1 𝑡 = 𝑆2 𝑡 for all 𝑡 (모든 시점에서 두 군의 생존확률은 같다)    유의수준   0.05
+          𝐻1 : 𝑆1 𝑡 ≠ 𝑆2 𝑡 for some 𝑡
+
+
+
+ 검정법      양측 이표본 로그순위 검정 (two-sided two-sample log-rank test)
+ 양측 (two-sided): 차이 검정
+ 이표본 (two-sample): 2개의 독립 집단 간의 비교
+ Log-rank 검정 : 생존자료에 대한 검정통계량의 확률분포
+생존자료에 대한 양측 이표본 검정                                   19
+
+
+
+
+# 데이터 가져오기
+# install.packages("riskCommunicator")
+library(riskCommunicator)
+data(framingham)
+
+# Period=1에 해당하는 군 선별 (Subgroup)
+library(dplyr)
+tmp <- framingham %>% dplyr::filter(PERIOD == 1)
+
+# CVD 발생 비율 및 time-to-event 확인
+with(tmp, table(DIABETES, CVD))
+with(tmp, tapply(TIMECVD, DIABETES, summary))
+
+# time-to-event=0인 환자군 삭제 (time-to-event는 항상 양의 값)
+tmp <- tmp %>% dplyr::filter(TIMECVD >0)
+
+# CVD 발생 비율 및 time-to-event 확인
+with(tmp, table(DIABETES, CVD))
+with(tmp, tapply(TIMECVD, DIABETES, summary))
+생존자료에 대한 양측 이표본 검정                                          20
+
+
+
+# Package for survival analysis
+library(survival)
+
+# ggplot Package for survival analysis
+# install.packages("survminer")
+library(survminer)
+
+# Survival curve for total population
+surv_fit <- survfit(Surv(TIMECVD/365, CVD) ~ 1, data=tmp)
+ggsurvplot(surv_fit,
+      data=tmp,
+      conf.int = TRUE,
+      risk.table = TRUE,
+      palette = "black",
+      ylim = c(0.6, 1),
+      xlab = "Time (years)",
+      ylab = "Survival Probability",
+      title = "Overall Survival Curve")
+해석     • CVD에 대한 5년 생존율 96%
+       • 5년째 살아있는 (CVD 발생하지 않은) 사람 4006명
+       • 5년내에 CVD 발생한 사람 167명
+생존자료에 대한 양측 이표본 검정                                                 21
+
+
+
+
+# Survival curve according to DIABETES
+surv_fit <- survfit(Surv(TIMECVD/365, CVD) ~ DIABETES, data=tmp)
+surv_fit
+
+ggsurvplot(surv_fit,
+     data=tmp,
+     conf.int = TRUE,
+     risk.table = TRUE,
+     pval=TRUE,
+     xlab = "Time (years)",
+     ylab = "Survival Probability",
+     title = "Overall Survival Curve according to DM")
+
+# Log-rank test
+survdiff(Surv(TIMECVD/365, CVD) ~ DIABETES, data=tmp)
+
+결론     • 과거 당뇨병 진단여부에 따른 CVD 발생의 생존 곡
+         선은 유의하게 다르다고 할 수 있다.
+Cox’s Proportional
+  Hazard Model
+
+
+
+                     22
+Cox’s Proportional Hazard Model (Cox’s PH Model)                                                                23
+
+
+
+
+  일반화 선형모형 (Generalized linear model, GLM)
+                            ⋯++𝛽𝛽𝑘𝑘𝑋𝑋𝑘𝑘++𝜖𝜖 and pre-chosen link function for 𝐠 · according to type of outcome
+    gg 𝑌𝑌 ==𝛽𝛽00++𝛽𝛽11𝑋𝑋11++⋯
+     Assume non-normal error
+
+  콕스 비례위험 회귀모형 (Cox’s proportional hazard regression model)
+     생존형 결과변수 (time-to-event data)
+     GLM for time-to-event outcome
+                                                    𝑑𝑆 𝑡
+      Log hazard link function     log ℎ(𝑡) = log             𝑤ℎ𝑒𝑟𝑒 𝑆 𝑡 = 𝑃 𝑇 > 𝑡
+                                                     𝑑𝑡
+
+      Assumption
+          Linear relationship between log hazard log ℎ(𝑡)         and X
+          Proportional hazard assumption (PH assumption, 비례 위험 가정)
+              위험도의 비(Hazard ratio)는 모든 시간에서 일정하다
+              어느 시점이던 두 집단 간 사건이 발생할 위험의 비율이 일정하게 유지된다
+              Shoenfeld residuals test (Shoenfeld individual test)   ℎ 𝑡 | 𝑋𝑘 = 1
+                                                                                  = 𝑐 (𝑐𝑜𝑛𝑠𝑡𝑎𝑛𝑡)
+                                                                     ℎ 𝑡 | 𝑋𝑘 = 0
+콕스 비례위험 회귀분석의 결과와 해석                                                                                         24
+
+
+
+
+                         Linear regression     Logistic regression           Cox’s PH regression
+
+     모형의 유의성                  F-test           Chi-square test, AIC        LRT, Wald test, Score test
+
+                                                                                Cox & Snell R2
+                                                  Cox & Snell R2
+     모형의 설명력                    R2                                              Negelkerke R2
+                                                  Negelkerke R2
+                                                                          Concordance index (C-index)
+
+  회귀계수 ( )의 유의성               t-test        LRT, Score test, Wald test    LRT, Score test, Wald test
+
+
+   회귀계수 ( )의 해석             Increment              Increment                      Increment
+   (by increment of X)     in outcome Y             in log odds                   in log hazard
+
+                                                                          AIC: Akaki information criterion
+                                                                          LRT: Log likelihood test
+Parameters of interest                                                  25
+
+
+
+
+  Survival Probability   𝑆 𝑡 =𝑃 𝑇>𝑡
+
+
+                                 𝑑𝑆(𝑡)        𝑃 𝑡 ≤ 𝑇 < 𝑡 + 𝑑𝑡 𝑇 ≥ 𝑡)
+  Hazard function        ℎ 𝑡 =         = lim
+                                  𝑑𝑡     𝑑𝑡→0            𝑑𝑡
+
+
+                                                        𝐾
+                                        𝑑𝑆 𝑡
+  Log hazard             ln(ℎ(𝑡)) = log         = 𝛽0 + ෍ 𝛽𝑘 𝑋𝑘
+                                         𝑑𝑡
+                                                       𝑘=1
+
+
+                                     ℎ 𝑡 | 𝑋𝑘 = 1
+  Hazard ratio           𝐻𝑅(𝑋𝑘 ) =                = exp(𝛽𝑘 )
+                                     ℎ 𝑡 | 𝑋𝑘 = 0
+
+
+  Beta coefficient        𝛽𝑘 = ln{𝐻𝑅(𝑋𝑘 )}
+Hazard Ratio vs Beta coefficient (𝜷)                        26
+
+
+
+
+   설명변수 별 위험비 (HR) vs 회귀계수 (𝛽)
+
+                       ℎ 𝑡 | 𝑋𝑘 = 1
+     𝐻𝑅𝑘 = 𝐻𝑅(𝑋𝑘 ) =                = exp(𝛽𝑘 )
+                       ℎ 𝑡 | 𝑋𝑘 = 0
+
+
+      𝛽𝑘 = ln 𝐻𝑅𝑘 = ln ℎ 𝑡 | 𝑋𝑘 = 1     − ln ℎ 𝑡 | 𝑋𝑘 = 0
+
+ • 𝑋𝑘 값이 한 단위 증가할 때, case가 발생할 log hazard가 𝛽𝑘 만큼 증가
+ • 𝑋𝑘 값이 한 단위 증가할 때, case가 발생할 hazard가 exp(𝛽𝑘 )만큼 증가
+Hazard Ratio vs Beta coefficient (𝜷)                                                          27
+
+
+
+
+  회귀계수 𝛽𝑘 의 의미
+
+    𝐻0 ∶ 𝛽𝑘 = 0     𝑯𝑹𝒌 = 𝟏   ℎ 𝑡 | 𝑋𝑘 = 1 = ℎ 𝑡 | 𝑋𝑘 = 0
+     No difference in hazard
+     No association between 𝑌 & 𝑋𝑘
+
+    𝐻0 ∶ 𝛽𝑘 ≠ 0 𝑯𝑹𝒌 ≠ 𝟏 ℎ 𝑡 | 𝑋𝑘 = 1 ≠ ℎ 𝑡 | 𝑋𝑘 = 0
+     Significant difference in hazard
+     Significant association between 𝑌 & 𝑋𝑘
+
+  회귀 계수 𝛽𝑘 의 부호
+      𝛽𝑘 > 0      𝐻𝑅 𝑋𝑘 > 1   ℎ 𝑡 | 𝑋𝑘 = 1 > ℎ 𝑡 | 𝑋𝑘 = 0   : 𝑋𝑘 = 1 일때 odds ↑ (risky)
+      𝛽𝑘 < 0      𝐻𝑅 𝑋𝑘 < 1   ℎ 𝑡 | 𝑋𝑘 = 1 < ℎ 𝑡 | 𝑋𝑘 = 0   : 𝑋𝑘 = 1 일때 odds ↓ (protective)
+
+  회귀 계수 𝛽𝑘 의 절대값
+     회귀 계수의 절대값이 클수록 해당 설명변수의 영향력/예측력이 크다는 의미
+     HR값이 1과 차이가 많이 날수록 해당 설명변수의 영향력/예측력이 크다는 의미
+예시 논문: 콕스 비례 위험 회귀 분석              28
+
+
+
+
+ Radiology (2023) 307(3):e222314
+예시 논문: 콕스 비례 위험 회귀 분석              29
+
+
+
+
+ Radiology (2023) 307(3):e222314
+예시 논문: 콕스 비례 위험 회귀 분석                   30
+
+
+
+
+      Radiology (2023) 307(3):e222314
+예제: 콕스 비례위험 회귀분석                                                       31
+
+
+
+
+ Demographic data of 857 patients with ACS
+  변수명                설명
+  age                환자 나이
+  sex                성별 (“Male” or “Female”)
+  cardiogenicShock   심장성 쇼크 (“No” or “Yes”)
+  entry              혈관 접근 경로 ("Femoral" or "Radial")
+  Dx                 최종 진단명 (“STEMI”, “NSTEMI” or “Unstable Angina”)
+  EF                 심장 초음파로 측정한 박출률 (%)
+  height             신장 (cm)
+  weight             체중 (kg)
+  BMI                체질량지수 (body mass index, kg/m2)
+  obesity            비만 여부 (“No” or “Yes”)
+  TC                 총콜레스테롤 (total cholesterol level, mg/dL)
+  LDLC               LDL 콜레스테롤 수치 (mg/dL)
+  HDLC               HDL 콜레스테롤 수치 (mg/dL)
+  TG                 중성지방 농도 (triglyceride level, mg/dL)
+  DM                 당뇨병 진단 여부 (“No” or “Yes”)
+  HBP                고혈압 진단 여부 (“No” or “Yes”)
+  smoking            흡연의 과거력 ("Never", "Ex-smoker" or "Smoker")
+예제: 콕스 비례위험 회귀분석                                                  32
+
+
+
+
+ # 당뇨병과 CVD 발생위험간의 연관성 분석 - Univariable analysis
+ surv_fit <- coxph(Surv(TIMECVD/365, CVD) ~ DIABETES, data=tmp)
+ summary(surv_fit)
+ extractHR(surv_fit)
+
+ # PH 가정 확인
+ cox.zph(surv_fit)
+ ggcoxzph(cox.zph(surv_fit))
+
+
+
+ 결론
+   ෢ 𝐷𝑀 = 4.11, p-value <0.05
+ • 𝐻𝑅
+    • 당뇨병을 진단받은 경우 CVD가 발생한
+      위험도(hazard)가 약 4.11배로 높아짐
+    • 당뇨병 진단여부는 CVD 발생에
+      유의한 효과를 가짐
+
+ • 비례위험 가정을 만족함 (P-value ≥ 0.05)
+예제: 콕스 비례위험 회귀분석                                                                      33
+
+
+
+
+ # 당뇨병과 CVD 발생위험간의 연관성 분석 - Multivariable analysis
+ surv_fit <- coxph(Surv(TIMECVD/365, CVD) ~ DIABETES + factor(SEX) + AGE, data=tmp)
+ summary(surv_fit)
+ extractHR(surv_fit)
+
+ # PH 가정 확인
+ cox.zph(surv_fit)
+ ggcoxzph(cox.zph(surv_fit))
+
+
+ 결론
+   ෢ 𝑑𝑖𝑎𝑏𝑒𝑡𝑒𝑠 = 2.85, p-value <0.05
+ • 𝐻𝑅
+    • 나이와 성별이 일정하다고 가정할 때, 당뇨병을 진단받은 경우 CVD가 발생한 위험도가 약 2.85배로 높아짐
+
+   ෢ 𝑠𝑒𝑥 = 0.45, p-value <0.05
+ • 𝐻𝑅
+    • 나이와 당뇨병 진단 여부가 일정하다고 가정할 때, 여자인 경우 CVD가 발생한 위험도가 약 0.45배로 낮아짐
+
+   ෢ 𝑎𝑔𝑒 = 1.07, p-value <0.05
+ • 𝐻𝑅
+    • 성별과 당뇨병 진단 여부가 일정하다고 가정할 때, 나이가 1단위 많은 경우 CVD가 발생한 위험도가 약 1.07배
+      로 높아짐
+R 실습
+
+
+
+
+       34
+실습: 콕스 비례위험 회귀분석                                                                    실습해봅시다!   35
+
+
+
+
+  1. “framingham” 자료 가져오기
+  install.packages("riskCommunicator")
+  library(riskCommunicator)
+  data(framingham)
+
+
+
+
+  2. Period 1에 해당하는 대상군 (PERIOD=1)에 한하여,
+     당뇨여부(DIABETES)로 심뇌혈관질환(CVD) 발생 위험을 예측할 수 있는 회귀식을 추정하고 추정된 위험비를 해석하라.
+
+
+
+
+  3. Period 1에 해당하는 대상군 (PERIOD=1)에 한하여,
+     성별(SEX), 나이(AGE), BMI, 수축기혈압(SYSBP), 심박수(HEARTRTE), 총콜레스테롤(TOTCHOL), 흡연 여부(CURSMOKE),
+     과거 고혈압 진단 여부(PREVHYP) 및 항고혈압 약 복용 여부 (BPMEDS)를 보정한 후,
+     당뇨여부(DIABETES)로 심뇌혈관질환(CVD) 발생 위험을 예측할 수 있는 회귀식을 추정하고 추정된 위험비를 해석하라.
+
+
+
+  4. 3번의 추정된 회귀식의 다중공선성과 비례위험 가정을 확인하고 해석하라.
+If you have ANY question,
+      please contact to
+    sszzgg91@naver.com
+
+
+
+
+                            36
+

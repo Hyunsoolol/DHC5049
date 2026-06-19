@@ -1,0 +1,242 @@
+Introduction to epidemiological
+  studies & machine learning
+      헬스케어데이터분석개론 15강
+
+                                        지상아
+                         삼성서울병원 의학통계센터
+                             sszzgg91@naver.com
+기말고사 공지   2
+    Introduction to
+epidemiological studies
+
+
+
+
+                          3
+목차   4
+[Review] Epidemiology, 역학
+PICO question
+예시: 흡연과 폐암 발생 간 연구                                                             7
+
+
+
+
+                Research start   Data Collection                    Analysis
+
+ Prospective
+ Cohort study
+
+
+
+
+                                 Data Collection   Research start   Analysis
+
+ Retrospective
+ Case-control study
+Study Designs in Medicine                                                                             8
+
+
+
+
+                 Süt, N. (2014). Study designs in medicine. Balkan medical journal, 31(4), 273-277.
+Study Designs in Medicine                                                                                9
+
+
+
+
+                                                                              Most reliable evidence
+
+
+
+
+                                                                              Lowest reliable evidence
+
+
+
+
+                 Süt, N. (2014). Study designs in medicine. Balkan medical journal, 31(4), 273-277.
+Cohort study   10
+[Review] 예제: 흡연과 심뇌혈관질환 발병 간의 연관성                         11
+
+
+
+
+ CURSMOKE, current smoking; CVD, cardiovascular disease
+Example 1 for Cohort study: Survival rates of NSCLC patients   12
+Example 1 for Cohort study: Survival rates of NSCLC patients   13
+Example 2 for Cohort study: Visual impairment and dementia   14
+Example 2 for Cohort study: Visual impairment and dementia   15
+Example 2 for Cohort study: Visual impairment and dementia   16
+Example 2 for Cohort study: Visual impairment and dementia   17
+Case-control study   18
+[Review] 예제: 비만과 심장성 쇼크 발병 간의 연관성 (Acute Coronary Syndrome Study)   19
+Example for case-control study: COX inhibitor and the risk of HCC   20
+Example for case-control study: COX inhibitor and the risk of HCC   21
+
+
+
+
+                                                   …
+Example for case-control study: COX inhibitor and the risk of HCC   22
+Cross-sectional study                                                                                                  23
+
+
+
+
+ • An observational study that analyzes data from a population at a single point in time to assess the prevalence of
+   an outcome or characteristics.
+Example 1 for cross-sectional study   24
+Example 2 for cross-sectional study   25
+Case report or Case series      26
+
+
+
+
+    • Series of case report
+      (more than one patient)
+Experimental (Interventional) Studies                                             27
+
+
+
+
+ • Compare the effect of treatments or interventions with control in humans
+ • Placebo or different treatment(s) or intervention(s) may be used as control.
+
+ • However, their results are always not appropriate for real life.
+
+  Phase I, II, III, IV study
+  Properties: Direction, Randomisation, Blinding, Confounding and interaction
+
+ •   Randomised controlled trial (RCT)
+ •   Non-randomised controlled trial
+ •   Self-controlled study
+ •   Crossover study
+ Introduction to
+machine learning
+
+
+
+
+                   28
+AI is everywhere!   29
+AI and medicine   30
+Artificial intelligence, machine learning, and deep learning
+[Review] Artificial Intelligence, 인공지능
+Supervised learning and unsupervised learning   33
+Zero-shot learning   34
+Generative AI   35
+ChatGPT                                            36
+
+
+
+
+ Haug, C. J., & Drazen, J. M. (2023). Artificial
+ intelligence and machine learning in clinical
+ medicine, 2023. New England Journal of
+ Medicine, 388(13), 1201-1208.
+Almanac Chat - MedGPT                            37
+
+
+
+
+                   Stanford, Harvard and Penn
+                         https://almanac.chat/
+Large language models (LLMs)   38
+의료정보에 대한 표현 학습                              39
+
+
+
+
+                 • 질병사인분류 ICD 코드:
+                  질병을 코드로 분류한 것으로 대표 질환이
+                  나
+                  해부학적 구조에 따라 체계적으로 구성
+
+                 • 자세하게 분류하였으나 질환의 복잡한 정보
+                  를 모두 담고 있다고는 할 수 없음
+AI interpretation                                                                         40
+
+
+
+
+                    https://www.lunit.io/en/company/news/lunit-gets-fda-nod-for-ai-based-
+                    chest-x-ray-triage-solution-developed-for-sorting-of-emergency-cases
+                    Rajpurkar, P., & Lungren, M. P. (2023). The Current and Future State of AI
+                    Interpretation of Medical Images. New England Journal of Medicine, 388(21),
+                    1981-1990.
+Multimodal model                                                                             41
+
+
+
+
+           Acosta, J. N., Falcone, G. J., Rajpurkar, P., & Topol, E. J. (2022). Multimodal
+           biomedical AI. Nature Medicine, 28(9), 1773-1784.
+Human–AI collaboration                                                                                                                            42
+
+
+
+
+       Brown, J. R. G., Mansour, N. M., Wang, P., Chuchuca, M. A., Minchenberg, S. B., Chandnani, M., ... & Berzin, T. M. (2022). Deep learning
+       computer-aided polyp detection reduces adenoma miss rate: a United States multi-center randomized tandem colonoscopy study
+       (CADeT-CS Trial). Clinical Gastroenterology and Hepatology, 20(7), 1499-1507.
+  Ethical AI                                                                                                                                   43
+
+
+
+                                                                           • Avoiding AI Bias. Since AIs learn from data, poorly
+                                                                             constructed AIs can (and do) demonstrate bias against
+                                                                             poorly represented subsets of the data. In particular, AIs that
+                                                                             are not well trained can demonstrate bias against minorities
+                                                                             and underrepresented groups.
+
+                                                                           • AI and Privacy. AI relies on information to learn from. A
+                                                                             significant fraction of this information comes from users. Not
+                                                                             all users are aware of what information is being gathered
+                                                                             about them and how it is being used to make decisions that
+                                                                             affect them.
+
+                                                                           • Avoiding AI mistakes. Poorly constructed AIs can make
+                                                                             mistakes which can lead to anything from loss of revenue to
+                                                                             death. Adequate testing is required to ensure that AIs do not
+                                                                             pose a risk to humans or to their environments.
+
+                                                                           • Managing AI environmental impact. AI models are getting
+                                                                             larger every day, with recent models being as large as over a
+                                                                             trillion parameters each. These large models consume a
+                                                                             significant amount of energy to train - making AI a large
+                                                                             resource consumer. Researchers are developing techniques
+https://edition.cnn.com/videos/business/2023/05/23/exp-pentagon-fake-
+                                                                             for energy efficient AIs that balance performance and energy
+             image-donie-live-052309aseg2-cnni-business.cnn
+                                                                             efficiency.
+https://www.forbes.com/sites/nishatalagala/2022/05/31/ai-ethics-what-it-
+                 is-and-why-it-matters/?sh=624bee933537
+AI accessibility                    44
+
+
+
+
+• Automated hyperparameter tuning
+
+
+
+
+• Simple and easy frameworks
+Copilot!   45
+References   46
+마치며…
+
+
+
+
+       47
+임상연구에 대한 제언   48
+If you have ANY question,
+      please contact to
+    sszzgg91@naver.com
+
+
+
+
+                            49
+

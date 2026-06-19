@@ -1,0 +1,1441 @@
+Data handling with R
+ 헬스케어데이터분석개론 9강
+
+                                  지상아
+                 삼성서울병원 의학통계센터
+                       sszzgg91@naver.com
+목차                                          2
+
+
+
+
+ 자료 가져오기
+ R을 이용한 데이터 핸들링
+     변수 및 케이스 삽입/지우기
+     자료 변환하기: 문자형 입력 → 숫자형 입력
+     파생변수 만들기: 연속형 변수 → 범주형 변수 (그룹 변수)
+     파생변수 만들기: 합성변수 만들기
+     파생변수 만들기: 절대 변화량 및 상대 변화량 계산하기
+     파생변수 만들기: 추적관찰기간 계산하기
+     다양한 자료 결합하기: Row bind vs Column bind
+ 자료 저장하기
+ 자료 점검하기
+자료 가져오기
+
+
+
+
+          3
+Example Data 1: BirthWeight                                                           4
+
+
+
+
+   Modified Data from Hosmer and Lemeshow (2000)
+    id        age        race      smoke           lwt   ptl   ht   ui   ftv   bwt
+    1         19          2         No         182       0     0    1    0     2523
+    2         33          3         No         155       0     0    0    3     2551
+    3         20          1         Yes        105       0     0    0    1     2557
+    4         21          1         Yes        108       0     0    1    2     2594
+    5         18          1         Yes        107       0     0    1    0     2600
+    6         21          3         No         124       0     0    0    0     2622
+    7         22          1         No         118       0     0    0    1     2637
+    8         17          3         No         103       0     0    0    1     2637
+    9         29          1         Yes        123       0     0    0    1     2663
+    10        26          1         Yes        113       0     0    0    0     2665
+    11        19          3         No             95    0     0    0    0     2722
+    12        19          3         No         150       0     0    0    1     2733
+    13        22          3         No             95    0     1    0    0     2751
+    …
+
+
+
+
+              …
+
+
+
+
+                         …
+
+
+
+
+                                     …
+
+
+
+
+                                                   …
+
+
+
+
+                                                         …
+
+
+
+
+                                                               …
+
+
+
+
+                                                                    …
+
+
+
+
+                                                                         …
+
+
+
+
+                                                                               …
+    189       21          1         Yes        130       0     1    0    3     2495
+Coding book for Example Data 1                                                                                                         5
+
+
+
+
+변수명     변수 설명 (Label)                                           변수 유형   기타 설명                    범주 1       범주 2       범주 3
+
+id      Identification code                                             Fake id
+
+age     Age of mother                                           연속형     단위: years, 범위: 18세 이상
+
+race    Race                                                    범주형                              1: White   2: Black   3: Other
+
+smoke   Smoking status during pregnancy                         범주형                              0: No      1: Yes     9999: unknown
+
+lwt     Weight of mother at last menstrual period               연속형     단위: pounds
+
+ptl     History (=number) of premature labor                    연속형
+
+ht      History of hypertension                                 범주형                              0: No      1: Yes
+
+ui      Presence of Uterine irritability                        범주형                              0: No      1: Yes
+
+ftv     Number of physician visits during the first trimester   연속형
+
+bwt     Recorded birth weight                                   연속형     단위: grams (1kg=1,000g)
+자료 가져오기 [‘Ex1_Data.csv’ 파일 열기]                                                                                       6
+
+
+
+
+ # Ex1_Data 자료 가져오기                                                   < csv 자료 가져오기 > 함수
+ Ex1_Data <- read.csv("Ex1_Data.csv", header=T, stringsAsFactors=F)
+                                                                      Arguments for read.csv {utils}
+                                                                      ① 파일명 (text로 기입)
+                                                                      ② 파일 내용에 변수명이 포함되어 있거나 (=T) 포함되지 않음 (=F)
+                                                                      ③ 텍스트를 Factor로 저장 (=T) or Character로 저장 (=F)
+                                                         결과(대화창)
+
+ # 자료의 첫 6줄 확인하기
+ head(Ex1_Data)
+
+
+
+
+ # 자료의 구조 확인하기
+ str(Ex1_Data)
+R을 이용한 데이터 핸들링
+
+
+
+
+                 7
+(1)-1. 새로운 변수 추가하기                                                                                          8
+
+
+
+
+                                                    < 변수 삽입하기 > 함수
+  기존 데이터와 새로운 데이터와 구분 반드시 필요
+                                                    Arguments for mutate {dplyr}
+ # 새로운 변수(New) 추가하기 (1)                             ① 삽입할 자료 (ex. dataframes, or tibbles)
+ tmp <- dplyr::mutate(Ex1_Data, New = 1)
+
+ # 새로운 데이터 구조 확인하기
+ str(tmp)
+
+
+
+                     Pipe 연산자                                                                   New 변수 확인
+                     (“그 다음“)
+ # 새로운 변수(New2) 추가하기 (1)
+ tmp <- Ex1_Data %>%
+    dplyr::mutate(New2 = rep(c("A","B","C"), 63))
+                                                    < 자료 반복하기 > 함수
+ # 새로운 데이터 구조 확인하기                                  Arguments for rep {base}
+ str(tmp)                                           ① vector 형태의 반복할 자료
+                                                    ② 반복 횟수
+
+                                                                                            New2 변수 확인
+(1)-2. 변수 지우기                                                    9
+
+
+
+
+ # id 변수 지우기
+ tmp <- tmp %>%           < 변수 추가/제외하기 > 함수
+     dplyr::select(-id)
+                          Arguments for select {dplyr}
+                          ① 추가/제외할 변수 (단, 제외시 변수명 앞에 (-)붙여야 함)
+
+
+
+ # 새로운 데이터 구조 확인하기
+ str(tmp)
+(1)-3. 새로운 케이스 추가하기                                                                                                  10
+
+
+                                                     < 케이스 삽입하기> 함수
+                                                     Arguments for rows_insert {dplyr}
+                                                     ① 삽입할 자료/케이스 (단, 값이 설정되지 않은 변수는 결측으로 삽입됨)
+ # 새로운 케이스 삽입하기 (1)
+                                                    ② 기존 자료와 구분되는 구분자 변수
+ tmp <- Ex1_Data %>%
+    dplyr::rows_insert(data.frame(id=190, age=40, race=1, smoke="No", lwt=100, ptl=1, ht=0, ui=0, ftv=0), by="id")
+
+
+ # 자료의 마지막 6줄 확인하기
+ tail(tmp)
+
+
+
+
+                                                          지정해주지 않은 변수값은 결측으로 설정                  삽입된 케이스 확인
+
+
+ # 새로운 케이스 삽입하기 (2)
+ New <- data.frame(id=190:192, age=c(40,NA, 60), race=c(1,1,1), smoke=rep("No",3))
+ tmp <- Ex1_Data %>% dplyr::rows_insert(New)
+
+
+ # 자료의 마지막 6줄 확인하기
+ tail(tmp)
+                                                                                                      삽입된 케이스들 확인
+(1)-4. 케이스 지우기                                                                                        11
+
+
+
+
+ # 케이스 지우기 (1)                                       < 케이스 제외하기 > 함수
+ tmp <- Ex1_Data %>%                                 Arguments for rows_delete {dplyr}
+    dplyr::rows_delete(data.frame(id = c(1,3,10)))
+                                                     ① 지울 케이스의 조건
+
+
+ # 자료의 첫 8줄 확인하기
+ head(tmp, 8)
+
+
+
+
+                                                                                         제외된 케이스 확인
+
+
+ # 케이스 지우기 (2)                                       < 케이스 선별하기 > 함수
+ tmp <- tmp %>%                                      Arguments for filter {dplyr}
+    dplyr::filter(age >=18)                          ① 선별할 케이스의 조건
+
+
+ # 변수의 요약통계량 확인하기
+ summary(tmp$age)
+                                                                     18세 이상임을 확인
+(2) 자료 변환하기: 문자형 입력 → 숫자형 입력                                            12
+
+
+
+ Question   범주형 변수(smoke)의 문자형 입력 값의 No, Yes를 0, 1로 변환하고 싶다면?
+
+
+
+
+                                      Smoking status during pregnancy
+                                        If smoke=No then smoke1=0
+                                        If smoke=Yes then smoke1=1
+(2) 자료 변환하기: 문자형 입력 → 숫자형 입력                                                                                              13
+
+
+
+ Question     범주형 변수(smoke)의 문자형 입력 값의 No, Yes를 0, 1로 변환하고 싶다면?
+
+                                                          < 조건식 생성하기> 함수
+ # smoke1 변수 삽입하기 (1)                                     Arguments for ifelse {base}
+ tmp <- Ex1_Data %>%
+                                                          ① 조건식 ② 조건식이 TRUE라면 입력될 값 ③ 조건식이 FALSE라면 입력될 값
+    dplyr::mutate(smoke1 = ifelse(smoke == "No", 0, 1))
+
+                                                 동일한 결과         # smoke1 변수 삽입하기 (2)
+                                주의!                             tmp <- Ex1_Data %>%
+                                                                   dplyr::mutate(smoke1 = ifelse(smoke == "Yes", 1, 0))
+
+
+ 문자형 자료는 따옴표(‘’) 또는 쌍따옴표(“”)로 표현해야 함.
+ 비교를 위한 논리형 연산자로서, == 를 사용해야 함. (참고로 = 사용 불가)
+
+
+
+ # smoke 변수와 smoke1 변수의 교차빈도표 확인하기
+ table(tmp$smoke, tmp$smoke1)
+
+                                 동일한 결과
+                                                 # smoke 변수와 smoke1 변수의 교차빈도표 확인하기
+                                                 with(tmp, table(smoke, smoke1))
+(3) 파생변수 만들기: 연속형 변수 → 범주형 변수 (그룹변수)   14
+(3) 파생변수 만들기: 연속형 변수 → 범주형 변수 (그룹변수)   15
+(3)-1. 파생변수 만들기: 연속형 변수 → 이분형 변수                                  16
+
+
+
+ Question   연속형 변수인 체중(bwt)을 저체중여부(lowbwt)로 변환하고 싶다면?
+
+
+
+
+                Recorded birth weight → Low birth weight status
+                         If bwt ≤ 2500 then lowbwt=1
+                                else lowbwt=0
+(3)-1. 파생변수 만들기: 연속형 변수 → 이분형 변수                                                                                 17
+
+
+
+ Question     연속형 변수인 체중(bwt)을 저체중여부(lowbwt)로 변환하고 싶다면?
+
+
+ # lowbwt 변수 삽입하기 (1)
+ tmp <- Ex1_Data %>%
+    dplyr::mutate(lowbwt = ifelse(bwt <= 2500, 1,0))
+
+                                                 동일한 결과    # lowbwt 변수 삽입하기 (2)
+                                                           tmp <- Ex1_Data %>%
+                                                              dplyr::mutate(lowbwt = ifelse(bwt > 2500, 0, 1))
+
+
+ 비교를 위한 논리형 연산자로서, <= 를 사용해야 함. (참고로 =< 는 오류 발생)
+
+                                                       < 조건에 따른 함수 적용하기> 함수
+                                                       Arguments for tapply {base}
+ # lowbwt 변수에 따른 bwt 변수의 분포 확인하기                       ① 대상변수 ② 조건변수 ③ 조건변수에 따라 대상변수가 적용될 함수
+ with(tmp, tapply(bwt, lowbwt, summary))
+
+
+
+
+                                                                             lowbwt에 따른 bwt의 분포 확인
+(3)-2. 파생변수 만들기: 연속형 변수 → 다범주 변수                                        18
+
+
+
+ Question   연속형 변수인 연령(age)을 연령군(age1)으로 변환하고 싶다면?
+
+
+
+
+                                      Age of mother → Age group
+                                        If age ≤ 30 then age1=1
+                                    If else 30 < age ≤ 40 then age1=2
+                                              else age1=3
+이분형 변수 vs 다범주 변수                                                                                                    19
+
+
+
+
+<연속형 변수 → 이분형 변수>
+                                                        TRUE                    FALSE
+Recorded birth weight → Low birth weight status                bwt ≤ 2500
+         If bwt ≤ 2500 then lowbwt=1                                                           =ifelse(bwt<=2500, 1, 0)
+                 else lowbwt=0
+                                                  lowbwt = 1                      lowbwt = 0
+
+
+
+
+<연속형 변수 → 다범주 변수>
+                                                        TRUE                    FALSE
+                                                                age ≤ 30
+          Age of mother → Age group
+                                                                            =ifelse(age<=30, 1, ifelse(age<=40, 2, 3))
+            If age ≤ 30 then age1=1
+        If else 30 < age ≤ 40 then age1=2          age1 = 1
+                  else age1=3                                        TRUE                           FALSE
+                                                                                   age ≤ 40
+
+
+
+                                                                age1 = 2                              age1 = 3
+(3)-2. 파생변수 만들기: 연속형 변수 → 다범주 변수                                                          20
+
+
+
+ Question      연속형 변수인 연령(age)을 연령군(age1)으로 변환하고 싶다면?
+
+
+ # age1 변수 삽입하기
+ tmp <- Ex1_Data %>%                                     여러 조건식을 수행할 때는 새로운 조건식을 수행할 때,
+     dplyr::mutate(age1 = ifelse(age <= 30, 1,           줄을 나누는 것이 오류를 방지할 수 있음.
+                             ifelse(age <= 40, 2, 3)))
+
+
+
+
+ # age1 변수에 따른 age 변수의 분포 확인하기
+ with(tmp, tapply(age, age1, summary))
+합성변수란?                                                                                                                  21
+
+
+
+
+   두개 이상의 변수를 활용하여 만들어진 파생변수
+   Composite endpoint 만들 때 유용!
+
+<예시>
+Major adverse cardiovascular events (MACE, or major adverse cardiac events) is a composite endpoint frequently
+used in cardiovascular research. It is defined as a composite of nonfatal stroke, nonfatal myocardial infarction, and
+cardiovascular death.
+Example Data 2: Cancer                                                                                                                                                22
+
+
+
+
+     Modified Data from Loprinzi et al (1994)
+num     entry_date   death_date   lastfu_date   status   age   sex    ht     wt_entry   wt_6month   dyspnea infection   incision_failure   vomit   hightemp   serumcr
+
+S0001   2008-07-22   2009-05-24   2009-06-03      2      74    1     176.2     50.3        NA          1        0              1            0        Yes       0.88
+
+S0002   2007-02-03   2008-05-03   2008-05-13      2      68    1     162.1     48         41.2         0        0              0            1        Yes       0.98
+
+S0003   2002-03-22      NA        2004-12-26      1      56    1     163.8     49.3       42.5         1        0              1            1        Yes       0.97
+
+S0004   2006-12-17   2007-07-15   2007-07-25      2      57    1     164.5     68.8       63.8         0        1              0            0        No        0.69
+
+S0005   2009-07-13   2011-12-13   2011-12-23      2      60    1     170.9     60.3       60.3         1        0              1            0        Yes       0.82
+
+S0006   2009-02-04      NA        2011-11-23      1      74    1     175.1     70          70          0        0              1            1        Yes       0.71
+
+S0007   2005-12-28   2006-11-03   2006-11-13      2      68    2     171.1     54.7       50.2         1        0              1            0        No        0.73
+
+S0008   2007-08-30   2008-08-25   2008-09-04      2      71    2     170.5     59         58.5         0        0              1            1        Yes        0.9
+
+S0009   2006-06-12   2007-01-16   2007-01-26      2      53    1     171       68.8       61.5         0        0              0            0        Yes       0.63
+
+S0010   2005-01-04   2005-06-19   2005-06-29      2      61    1     174.1     50         34.6         0        1              0            1        No        0.75
+
+S0011   2002-12-02   2003-05-21   2003-05-31      2      57    1     166.8     48.8       36.6         0        0              1            1        No        0.87
+
+S0012   2003-02-07   2004-11-22   2004-12-02      2      68    2     172.1     49.2       38.8         0        1              1            1        Yes       0.95
+
+S0013   2007-06-16   2009-06-13   2009-06-23      2      68    2     172.6     55.9       53.6         1        0              1            1        Yes       0.68
+ …
+
+
+
+
+           …
+
+
+
+
+                        …
+
+
+
+
+                                      …
+
+
+
+
+                                                 …
+
+
+
+                                                         …
+
+
+                                                               …
+
+
+
+                                                                      …
+
+
+
+                                                                               …
+
+
+
+
+                                                                                           …
+
+
+
+
+                                                                                                      …
+
+
+
+                                                                                                               …
+
+
+
+
+                                                                                                                              …
+
+
+
+
+                                                                                                                                            …
+
+
+
+                                                                                                                                                     …
+
+
+
+                                                                                                                                                                …
+S0228   2001-10-19      NA        2002-04-14      1      58    2     160.5     55.8       55.8         0        1              1            0        Yes       0.79
+Coding book for Example Data 2                                                                               23
+
+
+
+
+ 변수명                변수 설명 (Label)                     변수 유형   기타 설명                범주 1          범주 2
+
+ num                Identification code                       Fake id
+
+ entry_date         entry date                        날짜형
+
+ death_date         death date if dead                날짜형     NA if alive
+
+ lastfu_date        last follow-up date               날짜형
+
+ status             censoring status                  범주형                          1: censored   2: dead
+
+ age                age at entry date                 연속형
+
+ sex                sex                               범주형                          1: Male       2: Female
+
+ ht                 height at entry date              연속형     단위: cm, 결측이면 NA
+
+ wt_entry           weight at entry date              연속형     단위: kg, 결측이면 NA
+
+ wt_6month          weight at 6 month after entry     연속형     단위: kg, 결측이면 NA
+
+ dyspnea            dyspnea (complication)            범주형                          0: No         1: Yes
+
+ infection          infection(complication)           범주형                          0: No         1: Yes
+
+ incision_failure   incision failure (complication)   범주형                          0: No         1: Yes
+
+ vomit              vomit (complication)              범주형                          0: No         1: Yes
+
+ hightemp           high temperature (complication)   범주형                          No            Yes
+
+ serumcr            serum creatinine level            연속형     단위: mg/dL, 결측이면 NA
+(4) 파생변수 만들기: 합성변수 만들기 (연속형-범주형)                                                               24
+
+
+
+ Question    Serum Creatinine과 Age, Sex로 eGFR (estimated GFR)을 계산하고 싶다면?
+
+
+
+
+                                                             참고!
+                                                             열 숨기기
+                                                             ① 숨길 열 클릭 후 Shift를 누른 후
+                                                               화살표 오른쪽( )을 한번씩 클릭하면서 숨길 열 클릭
+                                                             ② 마우스 우 클릭 후 [숨기기] 클릭
+
+
+
+                Calculation formula of eGFR
+
+      If sex = 1 then 175*serumcr^(-1.154)*age^(-0.203)
+
+   If sex = 2 then 175*serumcr^(-1.154)*age^(-0.203)*0.742
+(4) 파생변수 만들기: 합성변수 만들기 (연속형-범주형)                                                                                          25
+
+
+
+ Question     Serum Creatinine과 Age, Sex로 eGFR (estimated GFR)을 계산하고 싶다면?
+
+
+ # Ex2_Data 자료 가져오기
+ Ex2_Data <- read.csv("Ex2_Data.csv", header=T, stringsAsFactors=F)
+
+
+ # eGFR 변수 삽입하기 (1)
+ tmp <- Ex2_Data %>%
+     dplyr::mutate(eGFR = ifelse(sex == 1, 175*serumcr^(-1.154)*age^(-0.203), 175*serumcr^(-1.154)*age^(-0.203)*0.742))
+
+ # eGFR 변수의 분포 확인하기
+ with(tmp, summary(eGFR))
+
+
+
+ # eGFR 변수 삽입하기 (2)
+ tmp <- Ex2_Data %>%
+     dplyr::mutate(eGFR = 175*serumcr^(-1.154)*age^(-0.203)*ifelse(sex == 2, 0.742, 1))
+
+ # eGFR 변수의 분포 확인하기
+ with(tmp, summary(eGFR))
+(5) 파생변수 만들기: 절대변화량 및 상대변화량 계산하기   26
+(5) 파생변수 만들기: 절대변화량 및 상대변화량 계산하기   27
+(5) 파생변수 만들기: 절대변화량 및 상대변화량 계산하기                                   28
+
+
+
+ Question   폐암 진단 전에 비해 진단 후의 몸무게 수치가 얼마나 변했는지 알고 싶다면?
+
+
+
+
+                    Absolute amount of Weight loss
+                 If wt_6month = NA then wt_loss1 = NA
+              If else then wt_loss1 = wt_entry - wt_6month
+
+
+
+                    Relative amount of Weight loss
+                 If wt_6month = NA then wt_loss2 = NA
+        If else then wt_loss2 = (wt_entry - wt_6month)/ wt_entry
+(5) 파생변수 만들기: 절대변화량 및 상대변화량 계산하기                                                             29
+
+
+
+ Question     폐암 진단 전에 비해 진단 후의 몸무게 수치가 얼마나 변했는지 알고 싶다면?
+
+
+
+ # 절대변화량 wt_loss1 변수 삽입하기
+ tmp <- Ex2_Data %>%
+    dplyr::mutate(wt_loss1 = ifelse(is.na(wt_6month), NA, wt_entry-wt_6month))
+
+
+
+ # wt_loss1 변수의 분포 확인하기
+ with(tmp, summary(wt_loss1))
+
+
+
+ # 상대변화량 wt_loss2 변수 삽입하기
+ tmp <- Ex2_Data %>%
+    dplyr::mutate(wt_loss2 = ifelse(!is.na(wt_6month), (wt_entry-wt_6month)/wt_entry, NA))
+
+
+
+ # wt_loss2 변수의 분포 확인하기
+ with(tmp, summary(wt_loss2))
+(6) 파생변수 만들기: 추적관찰기간 계산하기   30
+(6) 파생변수 만들기: 추적관찰기간 계산하기                                                                          31
+
+
+
+ Question   연구 시작일부터 사망 또는 마지막 추적관찰일까지 기간을 계산하고 싶다면?
+
+
+
+
+                                                          Survival time
+                                   If status = 1 (censored) then time = lastfu date – entry date
+
+                                     If status = 2 (dead) then time = death date – entry date
+(6) 파생변수 만들기: 추적관찰기간 계산하기                                                                                                          32
+
+
+
+   Question      연구 시작일부터 사망 또는 마지막 추적관찰일까지 기간을 계산하고 싶다면?
+
+
+
+# survival_time 변수 삽입하기 (1)                                         < 문자열을 날짜변수로 변환하기> 함수
+tmp <- Ex2_Data %>%                                                 Arguments for as.Date {base}
+   dplyr::mutate(entry_date1 = as.Date(entry_date),
+               death_date1 = as.Date(death_date),                   ① “YYYY-MM-DD”형태의 문자열
+                lastfu_date1 = as.Date(lastfu_date)) %>%
+   dplyr::mutate(survival_time = ifelse(status == 1, as.numeric(lastfu_date1-entry_date1), as.numeric(death_date1-entry_date1)))
+
+                                                                                 < 숫자변수로 변환하기> 함수
+                                                                                 Arguments for as.numeric {base}
+                                                                                 ① 논리형, 날짜형, factor 형식의 문자형 자료 등
+                                                                                    (단, 날짜형은 1970-01-01부터 소요된 일수로 계산됨)
+
+
+
+# survival_time 변수의 분포 확인하기
+with(tmp, summary(survival_time))
+(6) 파생변수 만들기: 추적관찰기간 계산하기                                                                                                33
+
+
+
+   Question      연구 시작일부터 사망 또는 마지막 추적관찰일까지 기간을 계산하고 싶다면?
+
+
+
+# survival_time 변수 삽입하기 (2)
+tmp <- Ex2_Data %>%
+   dplyr::mutate(survival_time = ifelse(status == 1, as.numeric(as.Date(lastfu_date)-as.Date(entry_date)),
+                                                                 as.numeric(as.Date(death_date)-as.Date(entry_date))))
+
+
+
+# survival_time 변수의 분포 확인하기
+with(tmp, summary(survival_time))
+(7) 다양한 자료 결합하기                                                                               34
+
+
+
+ Question     여러 연구팀으로부터 받은 자료들이 서로 형태가 다를 때, 이 자료들을 합쳐야 한다면?
+
+                      Row Bind                                 Column Bind
+                    행 결합, 환자 통합                               열 결합, 변수 통합
+        기존 자료에 새로운 환자들을 추가하는 경우                     기존 자료에 새로운 변수들을 추가하는 경우
+  Ex. Registry에서의 암환자와 CDW에서의 정상환자 결합                 Ex. 인구학적 자료와 Lab 자료 결합
+
+                          Same Data                            Different type of Data
+               for different group of Patients               for same group of Patients
+            Cancer Patients     Healthy Patients
+                                                        Demographic Data    Laboratory Data
+                (Case)             (Control)
+
+
+
+
+                                                    결합 기준변수                         기준 데이터셋
+                                                   (Key Variable)                    선정 필요!
+                                                   확인 매우 중요!
+(7) 다양한 자료 결합하기              35
+
+
+
+
+ Row Bind (행 결합, 환자 통합)의 예
+(7) 다양한 자료 결합하기                 36
+
+
+
+
+ Column Bind (열 결합, 변수 통합)의 예
+Example Data 3: A case-control study of endometrial cancer                                                                                                       37
+
+
+
+
+           Modified Data from Breslow and Day (1980)
+
+  ◆        Ex3_Case: Data for Case group                                          ◆    Ex3_Control: Data for Control group
+      id      gall   hyp   ob    est   dur   non duration   age   cest   group        id      gall   hyp   ob    est   dur   non duration   age   cest   group
+  Case1        No    No    Yes   Yes   4     Yes    96      74     3      1       Control1    No     No    NA    No    0     No     0       75     0      0
+
+  Case2        No    No    No    Yes   4     Yes    96      67     3      1       Control2    No     No    NA    No    0     No     0       74     0      0
+
+  Case3        No    Yes   Yes   Yes   1     Yes    9       76     1      1       Control3    No     No    NA    No    0     No     0       74     0      0
+
+  Case4        No    No    NA    Yes   4     No     96      71    NA      1       Control4    No     No    Yes   Yes   3     Yes    48      75     1      0
+
+  Case5       Yes    No    Yes   Yes   2     Yes    36      69     2      1       Control5    No     No    No    Yes   1     No     5       67     3      0
+
+  Case6        No    Yes   Yes   Yes   3     Yes    71      70     2      1       Control6    No     Yes   Yes   No    0     Yes    0       67     0      0
+
+  Case7       Yes    No    No    Yes   4     Yes    96      65     1      1       Control7    No     No    No    Yes   3     No     53      67     2      0
+
+  Case8       Yes    Yes   Yes   Yes   2     Yes    36      68     1      1       Control8    No     No    No    Yes   2     Yes    45      68     2      0
+
+  Case9        No    No    NA    No    0     Yes    0       61     0      1       Control9    No     Yes   Yes   Yes   4     Yes    96      76     2      0
+
+  Case10       No    No    Yes   Yes   3     Yes    54      64     1      1      Control10    No     Yes   No    Yes   1     Yes    3       76     1      0
+
+  Case11      Yes    No    Yes   Yes   4     Yes    96      68     3      1      Control11    No     Yes   Yes   Yes   2     Yes    15      76     2      0
+
+  Case12       No    No    No    Yes   4     Yes    96      74     2      1      Control12    No     No    No    Yes   2     Yes    36      77     1      0
+
+  Case13      Yes    No    Yes   Yes   0     Yes    0       67     0      1      Control13    Yes    No    No    Yes   1     Yes    7       70     2      0
+   …
+
+
+               …
+
+
+                     …
+
+
+                           …
+
+
+                                 …
+
+
+                                       …
+
+
+                                             …
+
+
+                                                    …
+
+
+                                                            …
+
+
+                                                                  …
+
+
+                                                                          …
+
+
+
+
+                                                                                      …
+
+
+
+                                                                                              …
+
+
+                                                                                                     …
+
+
+                                                                                                           …
+
+
+                                                                                                                 …
+
+
+                                                                                                                       …
+
+
+                                                                                                                             …
+
+
+                                                                                                                                    …
+
+
+                                                                                                                                            …
+
+
+                                                                                                                                                  …
+
+
+                                                                                                                                                          …
+  Case63      Yes    No    Yes   Yes   2     Yes    18      68     3      1      Control252   No     No    Yes   Yes   3     Yes    59      3     69      0
+Coding book for Example Data 3                                                                                             38
+
+
+
+
+ * (Uniform) Coding book for Data for Case and Control groups
+ 변수명        변수 설명 (Label)                                            변수 유형   기타 설명    범주 1         범주 2      범주 3   범주 4
+
+ id         subject code
+
+ gall       Gall bladder disease                                     범주형              No           Yes
+
+ hyp        Hypertension                                             범주형              No           Yes
+
+ ob         Obesity                                                  범주형              No           Yes
+
+ est        Use of estrogen drugs                                    범주형              No           Yes
+
+ dur        Duration of conjugated estrogen therapy                  연속형     단위: 개월
+
+ non        Use of non estrogen drugs                                범주형              No           Yes
+
+ duration   Months of estrogen therapy                               연속형     단위: 개월
+
+ age        Age                                                      연속형     단위: 세
+
+ cest       Conjugated oestrogen dose                                범주형              0            1         2      3
+
+ group      Endometrial cancer (case) or normal (control) patients   범주형              0: control   1: case
+
+
+
+         서로 다른 source로부터의 자료를 세로 결합할 경우,
+         ① 일관화된 coding book을 통해 각 데이터의 구조 및 변수명, 변수유형, 범주값, 단위 등을 통일시켜야 함!
+         ② 결합할 자료를 구분하는 변수 (ex. group)을 추가하여야 함!
+(7)-1. 다양한 자료 병합하기: Row Bind (행 결합, 환자 통합)                                  39
+
+
+
+ Question     Registry에서의 암환자 자료와 CDW에서의 정상환자 자료를 결합하고 싶다면?
+
+
+ # Ex3_Case 자료 가져오기
+ Ex3_Case <- read.csv("Ex3_Case.csv", header=T, stringsAsFactors=F)
+
+ head(Ex3_Case); str(Ex3_Case)
+
+ # Ex3_Control 자료 가져오기
+ Ex3_Control <- read.csv("Ex3_Control.csv", header=T, stringsAsFactors=F)
+
+ head(Ex3_Control); str(Ex3_Control)
+(7)-1. 다양한 자료 병합하기: Row Bind (행 결합, 환자 통합)                                                                      40
+
+
+
+ Question     Registry에서의 암환자 자료와 CDW에서의 정상환자 자료를 결합하고 싶다면?
+
+
+ # Ex3_Case와 Ex3_Control의 행 결합하기 (1)
+ tmp <- dplyr::rows_insert(Ex3_Case, Ex3_Control, by="id")
+
+
+ # Ex3_Case와 Ex3_Control의 행 결합하기 (2)
+ tmp <- Ex3_Case %>%
+        dplyr::rows_insert(Ex3_Control, by="id")
+
+
+
+
+ # 새로운 자료 구조 확인하기                                            Q: 만약 두 자료의 변수 순서/위치가 다르다면?
+ str(tmp)                                                    A: dplyr::select 함수로 변수의 순서를 통일시킨 후 행 결합을 해야 함.
+
+ # 케이스 및 변수의 개수, group의 분포 확인하기                              <예시>
+ nrow(tmp); ncol(tmp)                                        tmp1 <- Ex3_Case %>% dplyr::select(id, A,B,C)
+ with(tmp, table(group))                                     tmp2 <- Ex3_Control %>% dplyr::select(id, A,B,C)
+                                                             tmp3 <- dplyr::rows_insert(tmp1, tmp2, by=“id”)
+Example Data 4: Steno-2 Randomized Clinical Trial                                                                                             41
+
+
+
+
+        Modified Data from Gaede et al (2016)
+
+        Ex4_Demo: Demographic data                                                                       Ex4_Lab_First: Laboratory data
+  id       allo    sex   baseCVD     doBth        doDM        doBase        doEnd        doDth      id        doV       a1c     chol   crea
+   1       Int     M       0       1932-04-11   1991-01-21   1993-04-30   2014-10-12      NA         1     1993-05-07   87.3    3.9    83
+
+   2       Int     M       0       1946-11-09   1982-01-30   1993-06-08   2014-08-04      NA         2     1993-05-05   66.5    6.6    83
+
+   3       Conv    M       0       1943-06-07   1982-07-17   1993-05-17   2001-08-21   2001-09-20    3     1993-05-11    73     5.6    68
+
+   4       Conv    M       0       1944-11-01   1976-10-28   1993-05-04   2003-06-11   2003-06-24    4     1993-05-12   61.2    5.2    97
+
+   5       Conv    M       0       1935-12-22   1986-05-06   1993-03-23   1998-01-18   1998-02-25    5     1993-02-25   102.7    6     149
+
+   6       Conv    M       1       1946-12-23   1986-06-03   1993-03-31   2014-09-07      NA         6     1993-03-18   93.4    4.8    55
+
+   7       Conv    F       0       1929-02-17   1977-12-18   1993-03-28   2006-03-28   2006-04-24    7     1993-03-16   94.5    8.6    56
+
+   8       Int     M       0       1932-10-30   1982-10-26   1993-04-10   2012-02-25   2012-02-27    8     1993-03-12   103.9   5.1    78
+
+   9       Int     M       0       1930-06-26   1962-06-21   1993-03-22   1995-12-14   1995-12-05    9     1993-03-16   46.4    4.2    123
+
+  10       Int     M       0       1937-06-28   1983-01-24   1993-01-09   2011-05-28   2011-05-30   10     1993-01-21   84.4    5.4    79
+
+  11       Int     M       0       1930-02-08   1991-10-27   1993-02-11   2006-01-26   2006-02-03   11     1993-01-28   47.9    8.9    74
+
+  12       Conv    M       1       1928-04-03   1981-05-12   1993-03-11   2002-09-28   2002-09-15   12     1993-02-19   86.4    5.3    84
+
+  13       Int     M       0       1945-09-07   1990-03-23   1993-03-01   2014-09-25      NA        13     1993-03-23   80.9     6     65
+  …
+
+
+
+            …
+
+
+
+                   …
+
+
+
+
+                           …
+
+
+
+
+                                      …
+
+
+
+
+                                                   …
+
+
+
+
+                                                                …
+
+
+
+
+                                                                             …
+
+
+
+
+                                                                                          …
+
+
+
+
+                                                                                                    …
+
+
+
+                                                                                                              …
+
+
+
+
+                                                                                                                         …
+
+
+
+                                                                                                                                …
+
+
+
+                                                                                                                                       …
+  176      Conv    F       0       1943-02-12   1987-10-23   1994-05-25   2014-10-20      NA        176    1994-05-20   86.7    5.7    62
+Coding book for Example Data 4                                                                                                        42
+
+
+
+
+                                                                       기준 데이터셋
+           Coding book for Ex4_Demo (Demographic data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    allo        original trial allocation     범주형                                Int: Interventional drug   Conv: Conventional drug
+    sex         sex                           범주형                                M: Male                    F: Female
+    baseCVD     preexisting CVD at baseline   범주형                                0: No                      1: Yes
+    doBth       Date of birth                 날짜형     결측은 NA로 표기
+    doDM        Date of diabetes diagnosis    날짜형     결측은 NA로 표기
+    doBase      Date of entry to study        날짜형     결측은 NA로 표기
+                                                                      서로 다른 source로부터의 자료를 변수 결합할 경우,
+    doEnd       Date of exit from follow-up   날짜형     결측은 NA로 표기
+                                                                      두 자료의 결합 기준변수(key variable) 구조가 서로 동일해야 함!
+    doDth       Date of death                 날짜형     결측은 NA로 표기      즉, Demo자료의 id=1과 Lab자료의 id=1이 동일한 사람이며
+                                                                         Demo자료의 id=1과 Demo자료의 id=3은 다른 사람이어야 함.
+결합 기준변수
+     Coding book for Ex4_Lab_First (Laboratory data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    doV         Date of clinical visit        날짜형
+    a1c         Glycosylated hemoglobin       연속형     결측은 NA로 표기, 단위: mmol/mol
+    chol        Total cholesterol
+    crea        Creatinine                    연속형     결측은 NA로 표기, 단위: mg/mol
+(7)-2. 다양한 자료 병합하기: Column Bind (열 결합, 변수 통합)                                   43
+
+
+
+ Question     동일한 대상자 집단에 대한 인구학적 자료와 Lab 자료를 결합하고 싶다면?
+
+
+ # Ex4_Demo 자료 가져오기
+ Ex4_Demo <- read.csv("Ex4_Demo.csv", header=T, stringsAsFactors=F)
+
+ head(Ex4_Demo); str(Ex4_Demo)
+
+ # Ex4_Lab_First 자료 가져오기
+ Ex4_Lab_First <- read.csv("Ex4_Lab_First.csv", header=T, stringsAsFactors=F)
+
+ head(Ex4_Lab_First); str(Ex4_Lab_First)
+(7)-2. 다양한 자료 병합하기: Column Bind (열 결합, 변수 통합)                                                  44
+
+
+
+ Question     동일한 대상자 집단에 대한 인구학적 자료와 Lab 자료를 결합하고 싶다면?
+
+
+ # Ex4_Demo와 Ex4_Lab_First의 열 결합하기 (1)                       < 열 결합하기 > 함수
+ tmp <- dplyr::left_join(Ex4_Demo, Ex4_Lab_First, by="id")
+                                                             Arguments for left_join {dplyr}
+ # Ex4_Demo와 Ex4_Lab_First의 열 결합하기 (2)                       ① 기준 데이터셋 ② 결합할 데이터셋 ③ 결합 기준변수
+ tmp <- Ex4_Demo %>%
+      dplyr::left_join(Ex4_Lab_First, by="id")
+
+ # 새로운 자료 구조 확인하기
+ head(tmp); str(tmp)
+반복측정자료란?                                                       45
+
+
+
+
+  동일한 환자를 대상으로 조건이나 처리를 달리하여 측정하거나 또는 여러 시점에 걸쳐 반복적으로 측정하여 얻어진 자료
+
+
+
+
+ <예시> 위암 수술 후 BMI가 재발과 연관이 있을까?
+
+
+단일측정자료
+
+
+
+반복측정자료
+Example Data 5: Steno-2 Randomized Clinical Trial                                                                                            46
+
+
+
+
+        Modified Data from Gaede et al (2016)
+
+        Ex4_Demo: Demographic data                                                                       Ex5_Lab_Rep: (Repeated) Laboratory data
+  id       allo    sex   baseCVD     doBth        doDM        doBase        doEnd        doDth      id        doV       a1c    chol   crea
+   1       Int     M       0       1932-04-11   1991-01-21   1993-04-30   2014-10-12      NA         1     1993-05-07   87.3   3.9    83
+
+   2       Int     M       0       1946-11-09   1982-01-30   1993-06-08   2014-08-04      NA         1     1995-06-25   68.9   4.2    73
+
+   3       Conv    M       0       1943-06-07   1982-07-17   1993-05-17   2001-08-21   2001-09-20    1     1997-06-24   63.7   4.4    63
+
+   4       Conv    M       0       1944-11-01   1976-10-28   1993-05-04   2003-06-11   2003-06-24    1     2001-01-31   50.6    3     105
+
+   5       Conv    M       0       1935-12-22   1986-05-06   1993-03-23   1998-01-18   1998-02-25    1     2006-09-19   74.9   3.2    107
+
+   6       Conv    M       1       1946-12-23   1986-06-03   1993-03-31   2014-09-07      NA         1     2014-10-06   32.8   4.2    171
+
+   7       Conv    F       0       1929-02-17   1977-12-18   1993-03-28   2006-03-28   2006-04-24    2     1993-05-05   66.5   6.6    83
+
+   8       Int     M       0       1932-10-30   1982-10-26   1993-04-10   2012-02-25   2012-02-27    2     1995-06-28   54.8   5.7    105
+
+   9       Int     M       0       1930-06-26   1962-06-21   1993-03-22   1995-12-14   1995-12-05    2     1997-07-05   49.5   6.8    50
+
+  10       Int     M       0       1937-06-28   1983-01-24   1993-01-09   2011-05-28   2011-05-30    2     2001-10-29   69.4   4.2    63
+
+  11       Int     M       0       1930-02-08   1991-10-27   1993-02-11   2006-01-26   2006-02-03    2     2006-11-17   57.9   3.5    87
+
+  12       Conv    M       1       1928-04-03   1981-05-12   1993-03-11   2002-09-28   2002-09-15    2     2014-07-31   58.1   3.7    63
+
+  13       Int     M       0       1945-09-07   1990-03-23   1993-03-01   2014-09-25      NA         3     1993-05-11   73     5.6    68
+  …
+
+
+
+            …
+
+
+
+                   …
+
+
+
+
+                           …
+
+
+
+
+                                      …
+
+
+
+
+                                                   …
+
+
+
+
+                                                                …
+
+
+
+
+                                                                             …
+
+
+
+
+                                                                                          …
+
+
+
+
+                                                                                                    …
+
+
+
+                                                                                                              …
+
+
+
+
+                                                                                                                        …
+
+
+
+                                                                                                                               …
+
+
+
+                                                                                                                                      …
+  176      Conv    F       0       1943-02-12   1987-10-23   1994-05-25   2014-10-20      NA        176    2014-10-16   86.3   3.9    126
+Coding book for Example Data 5                                                                                                        47
+
+
+
+
+           Coding book for Ex5_Demo (Demographic data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    allo        original trial allocation     범주형                                Int: Interventional drug   Conv: Conventional drug
+    sex         sex                           범주형                                M: Male                    F: Female
+    baseCVD     preexisting CVD at baseline   범주형                                0: No                      1: Yes
+    doBth       Date of birth                 날짜형     결측은 NA로 표기
+    doDM        Date of diabetes diagnosis    날짜형     결측은 NA로 표기
+    doBase      Date of entry to study        날짜형     결측은 NA로 표기
+                                                                       서로 다른 source로부터의 자료를 변수 결합할 경우,
+    doEnd       Date of exit from follow-up   날짜형     결측은 NA로 표기
+                                                                       두 자료의 결합 기준변수(key variable) 구조가 서로 동일해야 함!
+    doDth       Date of death                 날짜형     결측은 NA로 표기       즉, Demo자료의 id=1과 Lab자료의 id=1이 동일한 사람이며
+                                                                          Demo자료의 id=3과 Lab자료의 id=1이 다른 사람이어야 함.
+결합 기준변수
+     Coding book for Ex5_Lab_Rep (Repeated Laboratory data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    doV         Date of clinical visit        날짜형
+    a1c         Glycosylated hemoglobin       연속형     결측은 NA로 표기, 단위: mmol/mol
+    chol        Total cholesterol
+    crea        Creatinine                    연속형     결측은 NA로 표기, 단위: mg/mol
+                                                                                         기준 데이터셋
+(7)-2. 다양한 자료 병합하기: Column Bind (열 결합, 변수 통합)                               48
+
+
+
+ Question     동일한 대상자 집단에 대한 인구학적 자료와 반복적인 Lab 자료를 결합하고 싶다면?
+
+
+ # Ex5_Demo 자료 가져오기
+ Ex5_Demo <- read.csv("Ex5_Demo.csv", header=T, stringsAsFactors=F)
+
+ head(Ex5_Demo); str(Ex5_Demo)
+
+ # Ex5_Lab_Rep 자료 가져오기
+ Ex5_Lab_Rep <- read.csv("Ex5_Lab_Rep.csv", header=T, stringsAsFactors=F)
+
+ head(Ex5_Lab_Rep); str(Ex5_Lab_Rep)
+(7)-2. 다양한 자료 병합하기: Column Bind (열 결합, 변수 통합)                  49
+
+
+
+ Question     동일한 대상자 집단에 대한 인구학적 자료와 반복적인 Lab 자료를 결합하고 싶다면?
+
+
+ # Ex5_Demo와 Ex5_Lab_Rep의 열 결합하기
+ tmp <- Ex5_Lab_Rep %>%
+      dplyr::left_join(Ex5_Demo, by="id")
+
+
+
+ # 새로운 자료 구조 확인하기
+ head(tmp); str(tmp)
+자료 저장 및 점검하기
+
+
+
+
+               50
+자료 저장하기                                                                                      51
+
+
+
+
+ # csv 자료로 저장하기
+ write.csv(tmp, "output.csv", row.names = F)   < csv 자료로 저장하기 > 함수
+                                               Arguments for write.csv {utils}
+ # xlsx 자료로 저장하기                               ① 저장할 object명 (matrix 또는 data.frame)
+ install.packages("openxlsx")
+                                               ② 파일명 (text로 기입)
+ library(openxlsx)
+                                               ③ 저장할 파일에 열 index를 포함시킬지 (=T) 포함시키 않을지 (=F)
+ write.xlsx(tmp, "output.xlsx")
+                                               < xlsx 자료로 저장하기 > 함수
+                                               Arguments for write.xlsx {openxlsx}
+                                               ① 저장할 object명 (matrix 또는 data.frame)
+                                               ② 파일명 (text로 기입)
+Example Data 5: Steno-2 Randomized Clinical Trial                                                                                            52
+
+
+
+
+        Modified Data from Gaede et al (2016)
+
+        Ex4_Demo: Demographic data                                                                       Ex5_Lab_Rep: (Repeated) Laboratory data
+  id       allo    sex   baseCVD     doBth        doDM        doBase        doEnd        doDth      id        doV       a1c    chol   crea
+   1       Int     M       0       1932-04-11   1991-01-21   1993-04-30   2014-10-12      NA         1     1993-05-07   87.3   3.9    83
+
+   2       Int     M       0       1946-11-09   1982-01-30   1993-06-08   2014-08-04      NA         1     1995-06-25   68.9   4.2    73
+
+   3       Conv    M       0       1943-06-07   1982-07-17   1993-05-17   2001-08-21   2001-09-20    1     1997-06-24   63.7   4.4    63
+
+   4       Conv    M       0       1944-11-01   1976-10-28   1993-05-04   2003-06-11   2003-06-24    1     2001-01-31   50.6    3     105
+
+   5       Conv    M       0       1935-12-22   1986-05-06   1993-03-23   1998-01-18   1998-02-25    1     2006-09-19   74.9   3.2    107
+
+   6       Conv    M       1       1946-12-23   1986-06-03   1993-03-31   2014-09-07      NA         1     2014-10-06   32.8   4.2    171
+
+   7       Conv    F       0       1929-02-17   1977-12-18   1993-03-28   2006-03-28   2006-04-24    2     1993-05-05   66.5   6.6    83
+
+   8       Int     M       0       1932-10-30   1982-10-26   1993-04-10   2012-02-25   2012-02-27    2     1995-06-28   54.8   5.7    105
+
+   9       Int     M       0       1930-06-26   1962-06-21   1993-03-22   1995-12-14   1995-12-05    2     1997-07-05   49.5   6.8    50
+
+  10       Int     M       0       1937-06-28   1983-01-24   1993-01-09   2011-05-28   2011-05-30    2     2001-10-29   69.4   4.2    63
+
+  11       Int     M       0       1930-02-08   1991-10-27   1993-02-11   2006-01-26   2006-02-03    2     2006-11-17   57.9   3.5    87
+
+  12       Conv    M       1       1928-04-03   1981-05-12   1993-03-11   2002-09-28   2002-09-15    2     2014-07-31   58.1   3.7    63
+
+  13       Int     M       0       1945-09-07   1990-03-23   1993-03-01   2014-09-25      NA         3     1993-05-11   73     5.6    68
+  …
+
+
+
+            …
+
+
+
+                   …
+
+
+
+
+                           …
+
+
+
+
+                                      …
+
+
+
+
+                                                   …
+
+
+
+
+                                                                …
+
+
+
+
+                                                                             …
+
+
+
+
+                                                                                          …
+
+
+
+
+                                                                                                    …
+
+
+
+                                                                                                              …
+
+
+
+
+                                                                                                                        …
+
+
+
+                                                                                                                               …
+
+
+
+                                                                                                                                      …
+  176      Conv    F       0       1943-02-12   1987-10-23   1994-05-25   2014-10-20      NA        176    2014-10-16   86.3   3.9    126
+Coding book for Example Data 5                                                                                                        53
+
+
+
+
+           Coding book for Ex5_Demo (Demographic data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    allo        original trial allocation     범주형                                Int: Interventional drug   Conv: Conventional drug
+    sex         sex                           범주형                                M: Male                    F: Female
+    baseCVD     preexisting CVD at baseline   범주형                                0: No                      1: Yes
+    doBth       Date of birth                 날짜형     결측은 NA로 표기
+    doDM        Date of diabetes diagnosis    날짜형     결측은 NA로 표기
+    doBase      Date of entry to study        날짜형     결측은 NA로 표기
+                                                                       서로 다른 source로부터의 자료를 변수 결합할 경우,
+    doEnd       Date of exit from follow-up   날짜형     결측은 NA로 표기
+                                                                       두 자료의 결합 기준변수(key variable) 구조가 서로 동일해야 함!
+    doDth       Date of death                 날짜형     결측은 NA로 표기       즉, Demo자료의 id=1과 Lab자료의 id=1이 동일한 사람이며
+                                                                          Demo자료의 id=3과 Lab자료의 id=1이 다른 사람이어야 함.
+결합 기준변수
+     Data for Ex5_Lab_Rep (Repeated Laboratory data)
+    변수명         변수 설명 (Label)                 변수 유형   기타 설명                      범주 1                       범주 2
+    id          person id
+    doV         Date of clinical visit        날짜형
+    a1c         Glycosylated hemoglobin       연속형     결측은 NA로 표기, 단위: mmol/mol
+    chol        Total cholesterol
+    crea        Creatinine                    연속형     결측은 NA로 표기, 단위: mg/mol
+                                                                                         기준 데이터셋
+자료 점검하기                                                                                                54
+
+
+
+ Question     allocation에 따른 남녀 비율 및 a1c 분포를 확인하고 싶다면?
+
+
+ # allocation의 분포 확인하기                                             < 그룹변수로 설정하기 > 함수
+ with(tmp, table(allo))                                            Arguments for group_by {dplyr}
+                                                                   ① 대상 자료
+ # allocation에 따른 남녀 비율 확인하기
+ with(tmp, table(allo, sex))                                       ② 그룹변수로 지정할 변수명
+
+
+ # allocation에 따른 a1c 분포 확인하기                                      < 요약 통계량 값 산출하기 > 함수
+ with(tmp, tapply(a1c, allo, summary))
+                                                                   Arguments for summarise {dplyr}
+ # allocation에 따른 a1c의 평균 및 표준편차 확인하기                              ① 대상 자료
+ tmp %>%                                                           ② 대상 변수와 함께 적용할 함수로 구성된 statement
+  dplyr::group_by(allo) %>%
+  dplyr::summarise(mean=mean(a1c, na.rm=T), sd=sd(a1c, na.rm=T))
+R 실습
+
+
+
+
+       55
+실습 : 파생변수 생성 및 자료 결합하기                                                                     실습해봅시다!      56
+
+
+
+
+   1. 실습자료인 Ex1_Data 자료를 불러오고, 연속형 변수인 체중(bwt)을 저체중여부(lowbwt)로 변환하라.
+
+
+
+
+   2. 실습자료인 Ex2_Data 자료를 불러오고, 호흡곤란(dyspnea), 감염(infection), 절개부위 열림(incision_failure), 구토(vomit), 체온
+   상승(hightemp) 중 1개 이상인 경우로 composite endpoint를 만들어라.
+
+
+
+
+   3. 실습자료인 Ex2_Data 자료에서 키와 몸무게로 BMI (Body mass index)를 만들어라.
+
+
+
+
+   4. 실습자료인 Ex4_Demo와 Ex4_Lab_First 자료를 불러오고, "id"라는 변수를 기준으로 열결합하라.
+
+
+
+
+   5. 4번에서 만든 자료의 allocation에 따른 남녀 비율 및 a1c 분포를 확인하라.
+If you have ANY question,
+      please contact to
+    sszzgg91@naver.com
+
+
+
+
+                            57
+

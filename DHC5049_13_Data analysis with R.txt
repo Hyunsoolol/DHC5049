@@ -1,0 +1,287 @@
+Data analysis with R
+헬스케어데이터분석개론 13강
+
+                                  지상아
+                   삼성서울병원 의학통계센터
+                       sszzgg91@naver.com
+To submit a paper ···
+
+
+
+   문제 확인           연구 목적 확립                               자료 분석 및 결과 해석
+
+                                     연구설계 및 방법론 선정
+
+
+
+     01      02         03      04        05         06        07         08
+
+
+
+
+           문헌 고찰             연구 가설 정의          자료 수집                연구보고서 및 논문
+[Review] 변수/자료 유형에 따른 검정법 선정 - 차이검정   3
+[Review] 변수/자료 유형에 따른 검정법 선정 - 관계/예측검정                                         4
+
+
+
+
+  차이 검정
+                          Parametric     Chi-square test
+                  범주형
+                         Nonparametric Fisher’s exact test
+가설검정      관계 검정
+                          Parametric     Pearson correlation
+                  연속형
+                         Nonparametric Spearman correlation
+ 관계/예측 검정
+                            연속형          Linear regression model
+
+                            범주형          Logistic regression model
+          예측 검정   회귀분석
+                            이산형          Poisson regression model
+
+                            생존형          Cox proportional hazards regression model
+데이터 분석 실습
+
+
+
+
+            5
+연구설계 및 방법론 선정                                                                                     6
+
+
+
+
+ 연구목적    CVD 발생에 영향을 미치는 인자는 무엇인가?
+ 분석내용    •   Table 1: Baseline characteristics for the study population
+         •   Table 2: Comparison between those with CVD and those without CVD
+         •   Figure 1: Kaplan-meier curve for CVD
+         •   Table 3: Risk factor analysis for CVD
+ 연구방법론   • Table 1: Summary Statistics for each characteristics
+         • Table 2
+             • Two-sample t-test or Wilcoxon rank-sum test for continuous variables
+             • Chi-square test or Fisher’s exact test for categorical variables
+         • Figure 1: Survival probabilities using Kaplan–Meier method.
+         • Table 3:
+             • Univariable analysis:
+               Hazard ratios (HRs) with 95% CI estimated from Cox’s proportional hazard
+               regression model.
+             • Multivariable analysis:
+               Variables with a P-value less than 0.1 in the univariable model were included in
+               the multivariable analysis.
+수집된 자료: Framingham Heart Study                                                                                                        7
+
+
+
+
+The Framingham Heart Study is a long term prospective study of the etiology of cardiovascular disease among a
+population of free living subjects in the community of Framingham, Massachusetts.
+             No.   변수명         설명
+             1     RANDID      개인식별번호
+             2     SEX         성별, (1: 남자, 2: 여자)
+             3     TOTCHOL     총콜레스테롤(total cholesterol) (mg/dl)
+             4     AGE         조사 당시 나이
+             5     SYSBP       수축기혈압(systolic blood pressure, SBP) (mmHg)
+             6     DIABP       이완기혈압(diastolic blood pressure, DBP) (mmHg)
+             7     CURSMOKE    흡연여부, (0: 현재 피우지 않음, 1: 현재 피움)
+             8     BMI         체질량지수(body mass index)
+             9     DIABETES    당뇨 여부 (casual glucose level로 측정) (0: Normal, 1: Diabetes)
+             10    BPMEDS      항고혈압 약 복용 여부 (0: No, 1: Yes)
+             11    HEARTRTE    심박수 (beats/min)
+             12    PREVHYP     과거 Hypertension 진단 여부 (0: No, 1: Yes)
+             13    PREVCHD     과거 Coronary heart disease (CHD) 진단 여부 (0: No, 1: Yes)
+             14    PREVAP      과거 Angina pectoris (AP) 진단 여부 (0: No, 1: Yes)
+             15    PREVMI      과거 Myocardial Infarction (MI) 진단 여부 (0: No, 1: Yes)
+             16    PREVSTRK    과거 Stroke 진단 여부 (0: No, 1: Yes)
+             17    PERIOD      조사 기간 (Examination cycle) 1 = Period 1 (n = 4434), 2 = Period 2 (n = 3930), 3 = Period 3 (n = 3263).
+             18    CVD         추적 관찰 (Follow-up) 이후 CVD 발생 여부 (0: No, 1: Yes)
+             19    TIMECVD     CVD 발생했을 때의 시간
+Flow Chart for the study population                                                              8
+
+
+
+
+           Participants Enrolled for Framingham heart study (n=11,627)
+
+
+                Patient in examination cycle for Period 1 (n=4,434)
+
+
+                                                       Excluded (1) Missing values
+                                                   •   TOTCHOL (n= )
+                                                   •   CIGPDAY (n=32)
+                                                   •   BMI (n=18)
+                                                   •   BPMEDS (n=59)
+                                                   •   HEARTRTE (n=1)
+                                                   •   GLUCOSE (n=345)
+                                                   •   educ (n=101)
+
+                                                     Excluded (2) Previous CVD-related history
+                                                   • PREVCHD (n= )
+                                                   • PREVAP (n=0)
+                                                   • PREVMI (n=0)
+                                                   • PREVSTRK (n=21)
+
+                           Study population (n=3,637)
+Table 1: Baseline characteristics for the study population                                                     9
+
+
+
+
+                                                  Total            • Categorical variables
+                                                (N= 3,637)            • Frequency (percentage)
+                                                                   • Continuous variables
+Sex (SEX)
+                                                                      • Normality assumption (Shapiro-Wilk test)
+-   Male                                                                   • Not violated
+-   Female                                                                      • Mean ± SD
+Age (AGE)                                    49.0 (42.0, 56.0)             • Violated
+Body mass index (BMI)                        25.4 (23.1, 28.0)                  • Median (Q1, Q3)
+Systolic blood pressure (SYSBP)             128.0 (117.0, 143.5)
+Heart rate (HEARTRTE)
+Total cholesterol (TOTCHOL)
+Diabetes (DIABETES)
+Current smoking (CURSMOKE)                    1,784 (49.1%)
+Hypertension (PREVHYP)                         1,125 (30.9%)
+Anti-hypertensive medication use (BPMEDS)       105 (2.9%)
+Table 2: Comparison between those with CVD and those without CVD                                    10
+
+
+
+
+                                                  No CVD                  CVD
+                                                                                          P-value
+                                                (N= 2,763)              (N= 874)
+
+Sex (SEX)
+-   Male
+-   Female
+Age (AGE)                                    47.0 (41.0, 55.0)      53.0 (46.0, 60.0)     <.0001
+Body mass index (BMI)                         25.1 (22.9, 27.6)     26.4 (24.0, 28.9)     <.0001
+Systolic blood pressure (SYSBP)             126.0 (115.0, 140.0)   137.0 (125.0, 154.4)   <.0001
+Heart rate (HEARTRTE)
+Total cholesterol (TOTCHOL)
+Diabetes (DIABETES)
+Current smoking (CURSMOKE)                    1,328 (48.1%)           456 (52.2%)         0.0376
+Hypertension (PREVHYP)                          701 (25.4%)           424 (48.5%)         <.0001
+Anti-hypertensive medication use (BPMEDS)        59 (2.1%)              46 (5.3%)         <.0001
+
+     • Two-sample t-test or Wilcoxon rank-sum test for continuous variables
+     • Chi-square test or Fisher’s exact test for categorical variables
+Figure 1: Kaplan-meier curve for CVD                                                              11
+
+
+
+
+                                       • Survival probabilities using Kaplan–Meier method.
+
+                                       DIABETES=0
+                                        years   n.risk   n.event   survival   95% LCL   95% UCL
+                                         5      3323      141                  0.953     0.966
+                                         10     3055      159                  0.904     0.923
+                                         15     2720      174                  0.848     0.871
+                                         20     2365      188                  0.785     0.812
+
+                                       DIABETES=1
+                                        years   n.risk   n.event   survival   95% LCL   95% UCL
+                                          5      80        11                  0.821     0.951
+                                         10      62        14                  0.637     0.823
+                                         15      43        16                  0.434     0.648
+                                         20      25        11                  0.278     0.498
+
+
+                                       Log-rank P-value=
+Table 3: Risk factor analysis for CVD                                                                                    12
+
+
+
+                                                    Univariable model                     Multivariable model
+                                             HR          95% CI         P-value    HR           95% CI       P-value
+Sex (SEX)
+-   Male
+-   Female
+Age (AGE)                                   1.068    (1.060, 1.077)     <.0001    1.055     (1.046, 1.064)      <.0001
+Body mass index (BMI)                       1.072    (1.057, 1.087)     <.0001    1.029     (1.012, 1.046)      0.0008
+Systolic blood pressure (SYSBP)             1.023    (1.021, 1.026)     <.0001    1.013     (1.009, 1.017)      <.0001
+Heart rate (HEARTRTE)
+Total cholesterol (TOTCHOL)
+-   Less than 200
+-   Equal or more than 200
+Diabetes (DIABETES)
+Current smoking (CURSMOKE)                  1.163    (1.019, 1.329)     0.0254    1.411     (1.225, 1.626)      <.0001
+Hypertension (PREVHYP)                      2.739    (2.397, 3.128)     <.0001    1.347     (1.123, 1.616)      0.0013
+Anti-hypertensive medication use (BPMEDS)   2.816    (2.091, 3.792)     <.0001    1.353     (0.989, 1.851)      0.0582
+
+     • Did all variables meet proportional hazards assumption?
+     • Was there severe level of multicollinearity among covariates?
+참고: Shoenfeld residual test for PH assumption                          13
+
+
+
+                                            P-value
+Sex (SEX)
+-   Male
+-   Female
+Age (AGE)                                   0.2625
+Body mass index (BMI)                       0.1303
+Systolic blood pressure (SYSBP)             0.1179
+Heart rate (HEARTRTE)
+Total cholesterol (TOTCHOL)
+-   Less than 200
+-   Equal or more than 200
+Diabetes (DIABETES)
+Current smoking (CURSMOKE)                  0.9328
+Hypertension (PREVHYP)                      0.0532
+Anti-hypertensive medication use (BPMEDS)   0.4077
+
+
+     • Did all variables meet proportional hazards assumption?
+     • Was there severe level of multicollinearity among covariates?
+When proportional hazard assumption is violated              14
+
+
+
+
+  Preprocessing data
+      Remove outlier
+      Transformation (ex. Logarithmic, Box-cox)
+      Categorization for continuous variable
+
+  Time-dependent covariates
+      Interaction with time
+
+  Stratified cox regression model for categorical variable
+
+  Remove the covariate
+Supplementary Table 1: Risk factor analysis for CVD (Yes or No)                                                          15
+
+
+
+                                                    Univariable model                     Multivariable model
+                                             OR          95% CI         P-value    OR           95% CI       P-value
+Sex (SEX)
+-   Male
+-   Female
+Age (AGE)                                   1.064    (1.054, 1.074)     <.0001    1.049     (1.038, 1.060)      <.0001
+Body mass index (BMI)                       1.084    (1.064, 1.104)     <.0001    1.040     (1.018, 1.063)      0.0003
+Systolic blood pressure (SYSBP)             1.024    (1.021, 1.027)     <.0001    1.012     (1.007, 1.017)      <.0001
+Heart rate (HEARTRTE)
+Total cholesterol (TOTCHOL)
+-   Less than 200
+-   Equal or more than 200
+Diabetes (DIABETES)
+Current smoking (CURSMOKE)                  1.179    (1.012, 1.373)     0.0342    1.459     (1.224, 1.739)      <.0001
+Hypertension (PREVHYP)                      2.772    (2.367, 3.246)     <.0001    1.411     (1.121, 1.776)      0.0034
+Anti-hypertensive medication use (BPMEDS)   2.546    (1.718, 3.773)     <.0001    1.118     (0.720, 1.730)      0.6242
+
+     • Was there severe level of multicollinearity among covariates?
+If you have ANY question,
+      please contact to
+    sszzgg91@naver.com
+
+
+
+
+                            16
+

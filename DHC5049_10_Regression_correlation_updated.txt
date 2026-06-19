@@ -1,0 +1,830 @@
+Regression & correlation methods
+       헬스케어데이터분석개론 10강
+
+                                        지상아
+                         삼성서울병원 의학통계센터
+                             sszzgg91@naver.com
+목차                                2
+
+
+
+
+ Correlation methods
+ Regression model
+     Simple linear regression
+     Multiple linear regression
+Correlation methods
+
+
+
+
+                      3
+[Remind] 변수/자료 유형에 따른 검정법 선정 - 차이 검정   4
+변수/자료 유형에 따른 검정법 선정 - 관계/예측검정                                                  5
+
+
+
+
+  차이 검정
+                          Parametric     Chi-square test
+                  범주형
+                         Nonparametric Fisher’s exact test
+가설검정      관계 검정
+                          Parametric     Pearson correlation
+                  연속형
+                         Nonparametric Spearman correlation
+ 관계/예측 검정
+                            연속형          Linear regression model
+
+                            범주형          Logistic regression model
+          예측 검정   회귀분석
+                            이산형          Poisson regression model
+
+                            생존형          Cox proportional hazards regression model
+[Remind] 범주형 자료 vs 범주형 자료                                                          6
+
+
+
+
+          부작용 발생       발생            미발생         전체
+  백신종류
+  기존 백신              50 (10%)      450 (90%)     500
+  새 백신               60 (20%)      240 (80%)     300
+  전체               110 (13.75%)   690 (86.25%)   800
+
+                                                       검정법
+  가설       𝐻0 : 기존 백신과 새 백신의 부작용 발생률은 같다
+           𝐻1 : 기존 백신과 새 백신의 부작용 발생률은 다르다                       Parametric
+                                                             Chi-square test
+
+
+  가설       𝐻0 : 백신의 종류와 부작용 발생 여부는 연관성이 없다                   Nonparametric
+           𝐻1 : 백신의 종류와 부작용 발생 여부는 연관성이 있다
+                                                             Fisher’s exact test
+
+
+  가설       𝐻0 : 백신의 종류와 부작용 발생 여부는 독립적인 관계이다
+           𝐻1 : 백신의 종류와 부작용 발생 여부는 독립적인 관계가 아니다
+[Remind] 연속형 자료 vs 연속형 자료                                       7
+
+
+
+
+  산점도 (scatter plot)
+    두 변수 사이의 선형관계가 있는지를 확인할 수 있음
+    이상치, 클러스터(그룹)의 존재를 식별할 수 있음
+       Ex. 키와 체중 간의 관계         Ex. 나이와 키 간의 관계
+           : 키가 클수록 체중이 늘어난다       : 나이가 들수록 키가 늘어난다고 할 수는 없다
+            (선형관계 있음)               (선형관계 없음)
+Correlation Analysis                                                                                                                           8
+
+
+
+
+  Correlation analysis (상관 분석)
+      두 변수 간의 연관성 (association)의 정도(strength)와 방향(direction)을 측정하는 방법
+
+  상관계수 (correlation coefficient, 𝑟, 𝜌) (−1 ≤ 𝑟 ≤ 1)
+    두 변수의 상관관계 (correlation)를 나타내는 값
+    크기와 방향으로 설명
+
+
+
+
+               https://cqeacademy.com/cqe-body-of-knowledge/continuous-improvement/quality-control-tools/the-scatter-plot-linear-regression/
+Correlation Analysis                                                    9
+
+
+
+
+  Correlation analysis (상관 분석)
+      두 변수 간의 연관성 (association)의 정도(strength)와 방향(direction)을 측정하는 방법
+
+     Pearson’s (product-moment) correlation coefficient (피어슨 상관계수)
+         정규성 가정 만족시 사용
+         두 연속형 변수의 선형 관계 (linear relationship)을 측정
+         이상치(outlier)에 민감
+      Ex. Height가 1단위 증가하면 Weight가 일정하게 변하는지
+
+     Spearman’s rank correlation coefficient (스피어만 상관계수)
+         정규성 가정 위반시 사용
+         두 연속형 변수의 순서/순위 관계 (monotone relationship)을 측정
+         이상치(outlier)에 덜 민감
+      Ex. 시험 등수가 증가하면 소득이 증가하는지
+Pearson’s Correlation vs Spearman’s Correlation                              10
+
+
+
+
+    Spearman correlation detects                  Spearman correlation is
+    monotone relationship even                    less sensitive to strong
+    though it’s non-linear                        outliers
+두 연속형 자료의 상관분석                                                                                           11
+
+
+
+
+Birthweight 자료에서 산모의 나이(age)와 마지막 생리 때의 산모 체중(lwt)간에 상관관계가 있는지를 검정하고,
+두 변수 간 상관계수를 추정하라.
+ 가설          𝐻0 : 산모의 나이와 마지막 생리 때의 산모 체중이 상관관계가 없다. (𝑟 = 0)                          유의수준        0.05
+             𝐻1 : 산모의 나이와 마지막 생리 때의 산모 체중이 상관관계가 있다. (𝑟 ≠ 0)
+
+ 정규성 가정 위반 검정법            Shapiro-Wilk test
+
+# 데이터 가져오기
+data <- read.csv('C:/Users/sangahchi/Downloads/10/birthweight.csv’, header=T, stringsAsFactors = F)
+
+# 정규성 가정 위반 검정 (Shapiro-Wilk test)
+with(data, shapiro.test(age))
+with(data, shapiro.test(lwt))
+
+# Scatter plot with linear line
+ggplot(aes(x=age, y=lwt), data=data) +
+  geom_point() +
+  geom_smooth(method=lm) +
+  theme_bw()
+두 연속형 자료의 상관분석                                                                                    12
+
+
+
+
+Birthweight 자료에서 산모의 나이(age)와 마지막 생리 때의 산모 체중(lwt)간에 상관관계가 있는지를 검정하고,
+두 변수 간 상관계수를 추정하라.
+ 가설          𝐻0 : 산모의 나이와 마지막 생리 때의 산모 체중이 상관관계가 없다. (𝑟 = 0)               유의수준         0.05
+             𝐻1 : 산모의 나이와 마지막 생리 때의 산모 체중이 상관관계가 있다. (𝑟 ≠ 0)
+
+ 검정법        Spearman correlation test
+                                                                   참고. Pearson correlation test
+# Spearman correlation test                                         • cor.test()
+with(data, cor.test(age, lwt, method = "spearman", exact=FALSE))    • method=“pearson”
+
+
+
+
+ 유의성 판단 (결론)
+ 두 변수는 유의한 상관관계가 있으며, 약 0.19의 상관계수로 약한 양적 상관관계를 가진다.
+[주의] 관계 검정의 해석                                                                                                 13
+
+
+
+
+                        범주형                                                      연속형
+
+
+           No difference in Y according to X                     No correlation between X and Y
+  Significance in Chi-square test or Fisher’s exact test   𝑟𝑋𝑌 = 0 (No significance in correlation analysis)
+
+
+
+
+           No association between X and Y                        No association between X and Y
+
+
+
+
+     Independent relationship between X and Y              Independent relationship between X and Y
+Regression Model
+
+
+
+
+                   14
+예시: Greene-Touchstone study (1963)                                                                  15
+
+
+
+
+  Objective
+  Relationship between birthweight and estriol level in pregnant women near the end of their term
+
+  Data
+  31 patients with three variable
+      Patient identification number
+      Measurement of estriol production
+      over a 24-hour period (mg/24hr)
+      Birthweight (in 100 gram units) of the baby
+예시: Greene-Touchstone study (1963)               16
+
+
+
+
+  Regression Line (회귀선)
+  : 출생시 체중 = 21.52 + 0.608 × 호르몬 수치
+      엄마의 호르몬 수치가 20인 아기들의 출생시 체중은 평균 3.368kg
+
+
+
+
+         Birthweight = 21.52 + 0.608 × Estriol
+독립 (Independent, X) vs 종속 (Dependent, Y) 변수   17
+
+
+
+
+  변수 간 관계에서의 역할: X → Y
+Regression Analysis                                                              18
+
+
+
+
+  Goal
+         결과변수 (𝑌)와 설명변수 (𝑋s)간의 인과관계 (causal relationship) 추론
+         인과관계를 𝑌 = 𝑓(𝑋)로 모형화
+
+
+           𝒀 = 𝒇 𝜷𝟎 + 𝜷𝟏 𝑿𝟏 + 𝜷𝟐 𝑿𝟐 + ⋯ + 𝜷𝑲 𝑿𝑲 + 𝝐
+
+         결과변수를 설명변수들의 선형 조합 (linear combination) = 가중합 (weighted sum)의 함수로 모형화
+
+  Objectives
+      모형의 추정, 유의성 확인, 설명력 평가
+      결과변수 설명/예측에 대한 각 설명변수의 상대적 기여도 추정
+      → 위험인자 분석 (risk factor analysis)
+         : outcome에 영향을 미치는 설명변수는 무엇인가?
+      특정 설명변수 값에 대한 결과변수 값 예측
+      → 예측 모형 (prediction modeling)
+         : 설명변수들로 outcome을 예측할 수 있는가?
+회귀분석의 종류: 모형 유형별                               19
+
+
+
+
+ 선형회귀 (linear regression)
+   Ex. 𝑌 = 𝛽0 + 𝛽1 𝑋 + 𝜖
+   Ex. 공부시간(x)과 시험 점수(y) 관계
+       : 공부시간이 늘어나면 점수도 거의 비례해서 증가할 때
+
+ 비선형회귀 (nonlinear regression)
+   Ex. 𝑌 = 𝛽0 + 𝛽1 𝑋 + 𝛽2 𝑋 2 + 𝜖
+   Ex. 시간(x)과 박테리아 수(y) 관계
+      : 시간이 지나면서 기하급수적으로 증식하는 경우
+   Ex. 온도(x)와 효소 활성도(y) 관계
+      : 특정 온도 범위에서는 증가하다가 다시 감소하는 종 모양 (포물선)
+회귀분석의 종류: 예측변수의 수                    20
+
+
+
+
+ 단변수 회귀 (univariable regression)
+   1개의 예측변수
+   Ex. 𝑌 = 𝛽0 + 𝛽1 𝑋 + 𝜖
+
+
+
+ 다변수 회귀 (multivariable regression)
+   2개 이상의 예측변수
+   Ex. 𝑌 = 𝛽0 + 𝛽1 𝑋1 + 𝛽2 𝑋2 + 𝜖
+회귀분석의 종류: 결과변수 유형별                                          21
+
+
+
+
+ 선형 회귀모형 (linear regression model)
+    연속형 결과변수 (ex. 출생시 체중)
+  • 𝑌 = 𝛽0 + 𝛽1 𝑋 + 𝜖
+
+ 로지스틱 회귀모형 (logistic regression model)
+   범주형 결과변수 (ex. 당뇨병 유병 여부)
+   g(𝑌) = 𝛽0 + 𝛽1 𝑋 + 𝜖 and logit link function for g ·
+
+ 포아송 회귀모형 (logistic regression model)
+   이산형 결과변수 (ex. 강원지역의 10년간 폐쇄성무호흡증 발생건수)
+   g(𝑌) = 𝛽0 + 𝛽1 𝑋 + 𝜖 and log link function for g(·)
+
+ 콕스 비례 회귀모형 (Cox proportional hazards regression model)
+    생존형 결과변수 (ex. 전체 생존기간 (overall survival))
+    g(𝑌) = 𝛽0 + 𝛽1 𝑋 + 𝜖 and log hazard function for g(·)
+    Regression Model
+① Simple Linear Regression
+
+
+
+                             22
+Linear regression model                                                                                    23
+
+
+
+
+  선형 회귀모형 (linear regression model)
+     연속형 결과변수 (ex. 출생시 체중)
+
+   • 𝑌𝑌𝑖𝑖 ==𝛽𝛽00++𝛽𝛽11𝑥𝑥𝑖𝑖++𝜀𝜀𝑖𝑖, ,   𝜀𝜀𝑖𝑖~𝑖𝑖𝑑 𝑁(0,𝜎𝜎22)) (𝑖𝑖𝑑, independent and identically distributed)
+                                          ~𝑖𝑖𝑑𝑁(0,
+
+   • 인과성 형태에 대한 가정
+      • 선형성 (Linearity)
+
+   • 오차에 대한 가정
+      • 독립성 (Independence): 각 자료의 오차들은 서로 영향을 주지 않음
+      • 정규성 (Normality): 모든 오차들은 같은 정규분포를 따름
+      • 등분산성 (Equal variance): 모든 오차들의 분산은 같음
+      • 오차의 평균은 0 (zero mean)
+선형 인과관계 가정                                                                              24
+
+
+
+
+ Linear relationship between 𝑌 and 𝑋
+   • 𝑌 = 𝜷𝟎 + 𝜷𝟏 𝑿 + 𝜺 (=deterministic model + random error)
+   • Assume 𝜀 ~ 𝑁(0, 𝜎 2 )
+
+
+
+
+                                                   Observed value (𝑌)
+             𝜺
+                                                   Expected value (𝜷𝟎 + 𝜷𝟏 𝑿)
+                                                   from estimated linear relationship
+오차에 대한 가정                                            25
+
+
+
+
+• 𝜀 ~ 𝑁 0, 𝜎 2
+• 𝐸(𝑌) = 𝛽0 + 𝛽1 𝑋
+    • Average value of 𝑌 for any fixed value of 𝑋
+    • Ex. 출생시 체중 = 21.52 + 0.608 × 호르몬 수치
+         → 엄마의 호르몬 수치가 20인 아기들의 출생시 체중은 평균 3.368kg
+회귀계수의 의미                                            26
+
+
+
+
+ 모형   𝑌𝑖 = 𝛽0 + 𝛽1 𝑥𝑖 + 𝜀𝑖 ,   𝜀𝑖 ~𝑖𝑖𝑑 𝑁(0, 𝜎 2 )
+
+• 𝑌절편 (intercept) 𝛽0
+   • 설명변수 값이 0일 때의 결과변수의 평균값
+
+ 기울기 (slope) 𝛽1
+  • 회귀계수 (regression coefficient)
+  • 설명변수의 기여도
+  • 설명변수 값이 1 증가할 때 결과변수의 평균 변화량
+회귀계수 추정 (최적합 직선의 추정)                                      27
+
+
+
+
+  모형    𝑌𝑖 = 𝛽0 + 𝛽1 𝑥𝑖 + 𝜀𝑖 ,   𝜀𝑖 ~𝑖𝑖𝑑 𝑁(0, 𝜎 2 )
+
+• 최적합 직선 (best fitting line)
+   • 자료를 가장 잘 설명하는 직선
+   • 자료와의 오차가 가장 작은 직선
+                                                      𝜺
+
+• 오차 (error)가 최소가 되는 직선 (intercept & slope)을 찾자!
+회귀계수 추정 (최적합 직선의 추정)                                               28
+
+
+
+
+• 오차 = 관측값(자료) – 예측값(회귀모형)
+• 오차제곱합 (SSE, sum of squares due to error)
+             𝑛         𝑛                 𝑛
+
+    𝑆𝑆𝐸 = ෍ 𝜀ෝ𝑖 2 = ෍(𝑦𝑖 − 𝑦ෝ𝑖 ) 2 = ෍(𝑦𝑖 − 𝛽መ0 + 𝛽መ1 𝑥𝑖 ) 2
+            𝑖=1        𝑖=1             𝑖=1
+
+
+• 오차제곱합에 대한 편미분(partial derivative)의 결과를 0으로 만드는 𝛽መ0 와 𝛽መ1 을 추정함
+
+    𝜕𝑆𝑆𝐸
+         =0                  𝛽መ0 = 𝑦ത − 𝛽መ1 𝑥ҧ
+     𝜕𝛽0
+
+    𝜕𝑆𝑆𝐸                             𝑆𝑥𝑦 σ(𝑥𝑖 − 𝑥)(𝑦
+                                                 ҧ 𝑖 − 𝑦)ത
+         =0                  𝛽መ1 =       =
+     𝜕𝛽1                             𝑆𝑥𝑥    σ(𝑥𝑖 − 𝑥)ҧ 2
+
+
+• Estimated regression line (=besting fitting line)
+
+    𝑦ො = 𝛽መ0 + 𝛽መ1 𝑥
+회귀계수에 대한 해석                                                       29
+
+
+
+
+• Coefficient in the estimated model
+
+• 설명변수의 효과 추정
+   • 직선의 기울기의 추정값
+   • 설명변수 값이 1단위 증가할 때 결과변수 값의 평균적인 변화량
+
+             𝑆𝑥𝑦
+     𝛽መ1 =       ,      𝑆𝐸 𝛽መ1 =   𝜎 2 /𝑆𝑥𝑥 ≈             ෢ 𝛽መ1
+                                                𝑀𝑆𝐸/𝑆𝑥𝑥 = 𝑆𝐸
+             𝑆𝑥𝑥
+
+
+• 설명변수의 효과에 대한 유의성 확인
+   • 𝐻0 : 𝛽1 = 0 (설명변수의 효과가 없다)
+
+    • Test statistics           𝛽መ1
+                           𝑡=       ~ 𝑡(𝑛 − 2)
+                              ෢ 𝛽መ1
+                              𝑆𝐸
+
+
+       p-value < α → 𝐻0 기각
+                   → 추정된 회귀계수가 통계적으로 유의하다고 판단 (즉, 설명변수의 효과가 있다)
+모형 평가 (1): 유의성 확인                                               30
+
+
+
+
+• 회귀모형의 유의성 확인
+   • 추정된 회귀직선이 의미가 있는가?
+   • 추정된 회귀직선이 설명하는 변동이 충분히 큰가?
+
+  • 분산분석표의 F-test의 p-value로 판정
+     • 𝐻0 : regression model is not significant (i.e., 𝛽1 =0)
+
+      • Test statistics          𝑀𝑆𝑅
+                            𝐹=       ~ 𝐹(1, 𝑛 − 2)
+                                 𝑀𝑆𝐸
+         p-value < α → 𝐻0 기각
+                     → 추정된 회귀식이 통계적으로 유의하다고 판단
+ANOVA (Analysis of Variance)                                                               31
+
+
+
+
+ • 결과변수 값의 변동(variation)을 두 부분으로 분해
+
+ • (결과변수 값의) 총 변동 = 예측변수가 설명하는 변동 + 오차에 의한 변동                       𝑌𝑖 = 𝜷𝟎 + 𝜷𝟏 𝒙𝒊 + 𝜺𝒊
+ • 예측변수가 설명하는 변동 → 회귀직선이 설명하는 변동
+ • 오차에 의한 변동      → 회귀직선으로 설명되지 않는 변동
+                                                𝑛
+ • SST (total sum of squares)
+                                                      ത 2
+                                         𝑆𝑆𝑇 = ෍(𝑦𝑖 − 𝑦)
+                                               𝑖=1
+
+
+ • SSR (sum of squares for regression)          𝑛
+
+                                                       ത 2
+                                         𝑆𝑆𝑅 = ෍(𝑦ෝ𝑖 − 𝑦)
+   𝑴𝑺𝑹 = 𝑺𝑺𝑹
+                                               𝑖=1
+
+
+ • SSE (sum of squares for error)               𝑛
+
+         𝑺𝑺𝑬                             𝑆𝑆𝐸 = ෍(𝑦𝑖 − 𝑦ෝ𝑖 ) 2 = 𝑆𝑆𝑇 − 𝑆𝑆𝑅
+   𝑴𝑺𝑬 =                                       𝑖=1
+         𝒏−𝟐
+모형 평가 (2): 설명력 확인                                  32
+
+
+
+
+• 회귀모형의 설명력 평가
+   • 추정된 회귀직선이 선형 인과관계를 얼마나 잘 설명하는가?
+
+  • 결정계수 (coefficient of determination)를 사용하여 판단
+  • 총변동에서 직선이 설명하는 변동의 비율
+                      𝑆 2
+                𝑆𝑆𝑅    𝑥𝑦
+           𝑅2 =     =
+                𝑆𝑆𝑇 𝑆𝑥𝑥 𝑆𝑥𝑦
+
+    0 ≤ 𝑅2 ≤ 1
+  • 𝑅2 ≈ 1→ 설명력이 높음 → good
+  • 𝑅2 ≈ 0→ 설명력이 낮음 → poor
+모형 평가 (3): 기본 가정의 확인                               33
+
+
+
+
+• 회귀분석 결과는 모형에 대한 가정이 만족될 때 신뢰할 수 있다!
+
+• 인과성 형태에 대한 가정
+   • 선형성 (Linearity) → 산점도와 상관계수로 확인
+
+• 오차에 대한 가정 → 잔차 (residual) 분석
+   • 독립성 (Independence): 각 자료의 오차들은 서로 영향을 주지 않음
+   • 정규성 (Normality): 모든 오차들은 같은 정규분포를 따름
+   • 등분산성 (Equal variance): 모든 오차들의 분산은 같음
+   • 오차의 평균은 0 (zero mean)
+잔차 (Residuals) 분석                                  34
+
+
+
+
+• 잔차 = 관측값 – (회귀)적합값 → 오차의 추정값
+
+   𝜀ෝ𝑖 = 𝑦𝑖 − 𝑦ෝ𝑖
+
+
+• 오차에 대한 가정 → 잔차 (residual)의 분포를 확인하여 가정을 확인하자!
+   • 독립성 (Independence): 각 자료의 오차들은 서로 영향을 주지 않음
+   • 정규성 (Normality): 모든 오차들은 같은 정규분포를 따름
+   • 등분산성 (Equal variance): 모든 오차들의 분산은 같음
+   • 오차의 평균은 0 (zero mean)
+Normal Q-Q Plot                             35
+
+
+
+
+ • 정규성 확인을 위한 시각화 도구
+    • 관측값의 분포를 이론적 정규분포와 비교
+    • 기준선: 𝑦 = 𝑥 (즉, 관측값의 분포와 표준정규분포의 일치)
+    • 기준선에서 많이 벗어나지 않아야 정규성을 만족한다고 판단
+Residual Plot (1) Residuals vs Fitted values           36
+
+
+
+
+ • 선형성, 오차의 등분산성, 오차 평균 0 확인을 위한 시각화 도구
+    • 잔차값(residuals)과 적합값(fitted values)와 비교
+    • 기준선: 𝑦 = 0
+    • 점들이 기준선을 중심으로 random하게 (즉, 패턴 없이 수평 띠 모양으로) 분포
+    • 특정 패턴이 관찰된 경우 기본 가정 중 일부 또는 전부가 위배되는 것으로 판단함
+    • Ex. 적합값이 커질수록 잔차 증가 → 등분산성 위배
+Residual Plot (2) Residuals vs Predictor values        37
+
+
+
+
+ • 선형성, 오차의 등분산성 확인을 위한 시각화 도구
+    • 잔차값(residuals)과 설명변수값(predictor values)와 비교
+    • 기준선: 𝑦 = 0
+    • 점들이 기준선을 중심으로 random하게 (즉, 패턴 없이 수평 띠 모양으로) 분포
+    • 특정 패턴이 관찰된 경우 기본 가정 중 일부 또는 전부가 위배되는 것으로 판단함
+    • Ex. 적합값이 커질수록 잔차 증가 → 등분산성 위배
+    • Ex. 곡선 패턴 → 선형성 위배
+예시: Greene-Touchstone study (1963)                                                                                    38
+
+
+
+
+ Greene and Touchstone conducted a study to relate birthweight and estriol level in pregnant women.
+ As can be seen from the figure, there appears to be a relationship between estriol level and birthweight, although
+ this relationship is not consistent and considerable scatter exists throughout the plot.
+ How can this relationship be quantified?
+예시: 모형에 대한 평가                                                                                                        39
+
+
+
+
+• 모형의 유의성 확인
+   • 분산분석표의 F-검정의 p-value로 판정
+• 모형의 설명력 평가
+   • 𝑅2 를 사용하여 판단
+
+ # Greene-Touchstone
+ data <- data.frame(ID = 1:31,
+           Estriol = c(7,9,9,12,14,16,16,14,16,16,17,19,21,24,15,16,17,25,27,15,15,15,16,19,18,17,18,20,22,25,24),
+           Birthweight =
+ c(25,25,25,27,27,27,24,30,30,31,30,31,30,28,32,32,32,32,34,34,34,35,35,34,35,36,37,38,40,39,43))
+
+ # ANOVA
+ fit <- summary(aov(Birthweight ~ Estriol, data=data))
+
+ # R-squared (=250.6/(250.6 + 423.4))
+ fit[[1]]$`Sum Sq`[1]/sum(fit[[1]]$`Sum Sq`)
+
+ 결론
+ F-test의 p-value <0.05로 모형은 유의하며, 모형은 총 변동의 37.18%를 설명함.
+예시: 기본 가정의 확인                                                                            40
+
+
+
+
+• 오차의 정규성 확인
+   • Normal Q-Q Plot
+• 선형성, 오차의 등분산성, 오차 평균 0 확인
+   • Residual Plot
+ # 기본 가정의 확인
+ res <- aov(Birthweight ~ Estriol, data=data)
+
+ # Normal Q-Q Plot
+ qqnorm(residuals(res))
+ qqline(residuals(res))
+
+ # Residual plot
+ plot(fitted(res), residuals(res),
+    xlab = "Fitted values",
+    ylab = "Residuals",
+    main = "Residual Plot")        결론
+ abline(h = 0, lty = 2)            Normal Q-Q plot에서 기준선에 크게 벗어나지 않는 것으로 보아, 정규성을 만족하며
+                                Residual plot에서 기준선을 중심으로 랜덤하게 발생되는 것으로 보아 선형성,
+                                등분산성, 평균 오차 0의 가정을 만족함.
+예시: 설명변수에 대한 해석 (1)                                                        41
+
+
+
+
+• 설명변수의 효과 추정
+   • Coefficient estimate 사용
+• 설명변수의 효과에 대한 유의성 확인
+   • 𝑡-검정의 p-value로 판정
+
+ # 선형 모형 적합
+ model <- glm(Birthweight ~ Estriol, data=data)
+
+ # Coefficient estimates
+ summary(model)
+ cbind(coef(model),confint(model))
+
+
+ 결론
+ • 회귀직선: 출생시 체중 = 21.5234 + 0.6082 *호르몬 수치
+ • 𝛽መ1 = 0.6082, p-value <0.05
+      • 산모의 Estriol 수치가 1mg/24hr 증가할 때 아기의 출생시 체중은 평균 60.82g 증가할 것으로 예측됨
+      • 산모의 Estriol 수치는 아기의 출생시 체중에 유의한 효과를 가짐
+
+ • 𝛽መ0 = 21.5234
+예시: 범주형 설명변수에 대한 해석 (이분형)                                                                              42
+
+
+
+
+ # 데이터 가져오기
+ data <- read.csv('C:/Users/sangahchi/Downloads/10/birthweight.csv’, header=T, stringsAsFactors = F)
+
+ # 설명변수 범주화
+ data$smoke <- factor(data$smoke, levels=c(“No”, “Yes”))
+
+ # 선형 모형 적합
+ model <- glm(bwt ~ smoke, data=data)
+
+ # Coefficient estimates
+ summary(model)
+ cbind(coef(model),confint(model))
+
+ 결론
+ • 회귀직선: 출생시 체중 = 3055.6957 + (-283.7767) * 산모의 흡연
+ • 𝛽መ1 = -283.7767, p-value <0.05
+      • 산모가 흡연을 할 경우, 흡연을 하지 않을 경우보다 아기의 출생시 체중은 평균 283.7767g 감소할 것으로 예측됨
+      • 산모의 흡연 여부는 아기의 출생시 체중에 유의한 효과를 가짐
+
+ • 𝛽መ0 = 3088.6957
+예시: 범주형 설명변수에 대한 해석 (다항형)                                                 43
+
+
+
+
+ # 설명변수 범주화
+ data$race <- factor(data$race)
+
+ # 선형 모형 적합 및 Coefficient estimates
+ model <- glm(bwt ~ race, data=data)
+ summary(model)
+ cbind(coef(model),confint(model))
+                           참고. Type III p-value
+ # Type III p-value
+ library(aod)                각 변수 자체의 효과에 대한 검정
+ wald.test(b = coef(model), Sigma = vcov(model), Terms = 2:3)
+
+ 결론
+ • 회귀직선: 출생시 체중 = 3055.6957 + (-383.0264) * Black + (-297.4352) * Other
+ • 𝛽መ𝑏𝑙𝑎𝑐𝑘 = -383.0264, 𝛽መ𝑜𝑡ℎ𝑒𝑟 = -297.4352, all p-value <0.05
+     • 흑인 산모의 경우, 백인 산모보다 아기의 출생시 체중은 평균 383.0264g 감소할 것으로 예측됨
+     • 기타 인종 산모의 경우, 백인 산모보다 아기의 출생시 체중은 평균 297.4352g 감소할 것으로 예측됨
+     • 산모의 인종은 아기의 출생시 체중에 유의한 효과를 가짐 (Type III p-value로 판단)
+
+ • 𝛽መ0 = 3102.7187
+     Regression Model
+② Multiple Linear Regression
+
+
+
+                               44
+다변수 회귀분석 (Multiple Linear Regression)                                                    45
+
+
+
+
+  모형    𝑌𝑖 = 𝛽0 + 𝛽1 𝑥1𝑖 + 𝛽1 𝑥2𝑖 + ⋯ + 𝛽𝑘 𝑥𝑘𝑖 + 𝜀𝑖 ,   𝜀𝑖 ~𝑖𝑖𝑑 𝑁(0, 𝜎 2 )
+
+• 기본 가정
+   • 선형성 (Linearity)
+   • 독립성 (Independence), 정규성 (Normality), 등분산성 (Equal variance), 오차의 평균은 0 (zero mean)
+
+• 특정 설명변수와 결과변수 간의 연관성을 평가할 때, 다른 설명변수의 효과를 보정(adjust)하는 것이 필요함
+• 교란인자나 보정변수들의 효과를 통제한 상태에서,
+  주요 관심있는 변수 (primary risk factor)의 순수한 효과를 보기 위함!
+다중공선성 (Multicollinearity)                                         46
+
+
+
+
+  다변수 회귀분석에 포함할 설명변수들 선정이 필요함
+    다변수 분석에 포함할 설명변수들 (주요 위험인자, 교란인자, 보정변수) 후보 리스트업
+
+                 임상적인 고려                         통계적인 고려
+                                       &
+            논문 리뷰나 임상 경험을 통해               단변수 분석 등 통계분석 결과를 통해
+        ‘임상적 유의성/유용성＇이 알려진 변수들              ‘통계적 유의성’이 알려진 변수들
+
+
+
+  설명변수들 간의 다중공선성 (높은 상관성) 검토 (VIF < 5 or < 10)
+
+• 단변수 분석 (univariable p-value < 0.1)
+• 변수선택법 적용 (variable selection)
+• 정규화 (regularization) 회귀분석 사용
+   • Ex. Ridge regression, LASSO 등
+변수선택법 (Variable selection/ feature selection)                        47
+
+
+
+
+ • 전진선택법 (forward selection)
+    • 널 모형 (null model)에서 출발 𝑌 = 𝛽0
+    • 설명변수 중에서 가장 크게 영향을 미칠 것 같은 변수부터 하나씩 포함하면서 변수선택 진행
+    • 모형 적합도가 더 이상 개선되지 않으면 종료
+
+ • 후진제거법 (backward elimination)
+    • 포화 모형 (full model)에서 출발   𝑌 = 𝛽0 + 𝛽1 𝑥1 + 𝛽1 𝑥2 + ⋯ + 𝛽𝑘 𝑥𝑘
+    • 설명변수 중에서 가장 적게 영향을 미칠 것 같은 변수부터 하나씩 제거하면서 변수선택 진행
+    • 모형 적합도가 상당히 감소할 것 같으면 종료
+
+ • 단계별선택법 (stepwise selection)
+    • 전진선택법과 후진제거법을 결합하여 진행
+예시: 다변수 회귀분석                                                                48
+
+
+
+
+ # 설명변수 범주화
+ data$smoke <- factor(data$smoke)
+
+ # 선형 모형 적합 및 Coefficient estimates
+ model <- glm(bwt ~ age + smoke, data=data)
+ summary(model)
+ cbind(coef(model),confint(model))
+
+ # 다중공선성 확인
+ library(car)
+ vif(model)
+
+ 결론
+ • 회귀직선: 출생시 체중 = 2791.2243 + 11.2896 * 산모 나이 + (-278.3561) * 흡연
+ • 𝛽መ𝑠𝑚𝑜𝑘𝑒 = - 278.3561, p-value <0.05
+      • 산모 나이가 일정하다고 가정할 때 (산모 나이를 보정할 때)
+        산모가 흡연을 할 경우, 흡연을 하지 않을 경우보다 아기의 출생시 체중은 평균 278.3561g 감소할 것으로 예측됨
+      • 산모 나이를 보정한 후에도, 산모의 흡연 여부는 아기의 출생시 체중에 유의한 효과를 가짐
+
+ • 𝛽መ0 = 2791.2243
+R 실습
+
+
+
+
+       49
+실습 1: 상관관계 분석                                                                  실습해봅시다!     50
+
+
+
+
+   1. 실습자료인 birthweight 자료를 불러오고, 산모의 마지막 생리때의 체중(lwt)과 아기의 출생시 체중(bwt)의 분포를 확인하라.
+
+
+
+
+   2. 산모의 마지막 생리때의 체중 (lwt)과 아기의 출생시 체중 (bwt)간의 연관성을 확인하기 위해 산점도를 그려라. (단, ggplot 함수 사용)
+
+
+
+
+   3. 2번의 산점도에 선형 회귀직선을 그려라. (단, ggplot 함수의 geom_smooth 함수 사용)
+
+
+
+
+   4. 산모의 마지막 생리때의 체중 (lwt)과 아기의 출생시 체중 (bwt)간의 상관계수를 추정하고 유의성을 확인하라.
+실습 2: 선형 회귀분석                                                                실습해봅시다!       51
+
+
+
+
+   1. birthweight 자료에서 산모의 나이(age)로 아기의 출생시 체중(bwt)를 예측할 수 있는 회귀식을 추정하고 추정된 회귀계수를 해석하라.
+
+
+
+
+   2. 1번의 추정된 회귀식에 대한 유의성과 설명력을 확인하라.
+
+
+
+
+   3. 산모의 나이(age), 인종(race) 및 흡연여부(smoke)로 아기의 출생시 체중(bwt)를 예측할 수 있는 회귀식을 추정하고 추정된 회귀계수를
+   해석하라.
+
+
+
+
+   4. 3번의 추정된 회귀식의 다중공선성을 확인하고 해석하라.
+If you have ANY question,
+      please contact to
+    sszzgg91@naver.com
+
+
+
+
+                            52
+
